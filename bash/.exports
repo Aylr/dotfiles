@@ -1,0 +1,4 @@
+# Non secret exports
+
+# Local bin dir in home directory
+export PATH="/Users/taylor/bin:$PATH"

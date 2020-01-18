@@ -1,0 +1,13 @@
+# Makefile autocompletion
+complete -W "\`grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' Makefile | sed 's/[^a-zA-Z0-9_.-]*$//'\`" make
+
+# git bash autocompletion
+# curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
+if [ -f ~/.git-completion.bash ];
+	then . ~/.git-completion.bash
+fi
+
+# z for fast directory switching
+# https://github.com/skywind3000/z.lua
+eval "$(lua ~/repos/forks/z.lua/z.lua --init bash enhanced once)"
+export _ZL_ECHO=1

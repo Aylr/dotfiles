@@ -1,0 +1,36 @@
+# Handy git aliases
+gc () {
+  git checkout $1
+}
+
+gcd () {
+  git checkout develop || git checkout master
+}
+
+gitcommit () {
+  git commit -m "$1"
+}
+
+gb () {
+  git checkout -b "$1"
+}
+alias gd="git diff"
+alias gl="git branch -a"
+alias gs="git status"
+alias gp="git pull"
+alias gf="git fetch"
+alias gcm="git commit -m"
+alias glo="git log --pretty=oneline"
+
+# Handy python stuff
+alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
+alias s.="source venv/bin/activate 2> /dev/null || source .venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
+alias cookiecutter-minimal="cookiecutter https://github.com/Aylr/cookiecutter-python-package-minimal"
+alias jpl="jupyter lab"
+
+# Handy dbt stuff
+alias gen="dbt docs generate"
+alias serve="dbt docs serve"
+alias gserve="dbt docs generate && dbt docs serve"
+
+alias slack="cd ~/repos/sclack/ && s. && ./app.py"

@@ -1,0 +1,104 @@
+# Prompt customization
+# http://ezprompt.net
+# get current branch in git repo
+function parse_git_branch_original() {
+	BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+	if [ ! "${BRANCH}" == "" ]
+	then
+		STAT=`parse_git_dirty`
+		echo "[${BRANCH}${STAT}]"
+	else
+		echo ""
+	fi
+}
+
+# Prompt customization
+# http://ezprompt.net
+# get current branch in git repo
+function parse_git_branch_taylor() {
+	POWERLINE_SEPARATOR=""
+	# prior_bg=$1
+	# git_fg=$2
+	# git_bg=$3
+	# next_bg=$4
+	prior_bg=8
+	git_fg=220
+	git_bg=0
+	next_bg=6
+	BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+	if [ ! "${BRANCH}" == "" ]
+	then
+		STAT=`parse_git_dirty`
+		
+		# /001 starts non printable and /002 ends it!
+		first_separator_color="\001\033[48;5;${git_bg}m\033[38;5;${prior_bg}m\002"
+		git_colors="\001\033[38;5;${git_fg}m\033[48;5;${git_bg}m\002"
+		second_separator_color="\001\033[38;5;${git_bg}m\033[48;5;${next_bg}m\002"
+		
+		# -n suppresses newline
+		echo -n -e "${first_separator_color}${POWERLINE_SEPARATOR}${git_colors}${BRANCH}${STAT}${second_separator_color}"
+	else
+		echo -n -e "\001\033[38;5;${prior_bg}m\033[48;5;${next_bg}m\002"
+	fi
+	echo "${POWERLINE_SEPARATOR}"
+}
+
+# get current status of git repo
+function parse_git_dirty {
+	status=`git status 2>&1 | tee`
+	dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
+	untracked=`echo -n "${status}" 2> /dev/null | grep "Untracked files" &> /dev/null; echo "$?"`
+	ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is ahead of" &> /dev/null; echo "$?"`
+	newfile=`echo -n "${status}" 2> /dev/null | grep "new file:" &> /dev/null; echo "$?"`
+	renamed=`echo -n "${status}" 2> /dev/null | grep "renamed:" &> /dev/null; echo "$?"`
+	deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" &> /dev/null; echo "$?"`
+	bits=''
+	if [ "${renamed}" == "0" ]; then
+		bits=">${bits}"
+	fi
+	if [ "${ahead}" == "0" ]; then
+		bits="*${bits}"
+	fi
+	if [ "${newfile}" == "0" ]; then
+		bits="+${bits}"
+	fi
+	if [ "${untracked}" == "0" ]; then
+		bits="?${bits}"
+	fi
+	if [ "${deleted}" == "0" ]; then
+		bits="x${bits}"
+	fi
+	if [ "${dirty}" == "0" ]; then
+		bits="!${bits}"
+	fi
+	if [ ! "${bits}" == "" ]; then
+		echo " ${bits}"
+	else
+		echo ""
+	fi
+}
+
+declare COLORS=(default="\e[39m" black="\e[30m" red="\e[31m" green="\e[32m" yellow="\e[33m" blue="\e[34m" magenta="\e[35m" cyan="\e[36m" light="\e[37m" reset="\[\e[0m\]")
+
+# https://misc.flogisoft.com/bash/tip_colors_and_formatting#colors1
+ANSI_RESET="\[\e[0m\]"
+FG_1="\[\e[39m\]"
+BG_1="\[\e[100m\]"
+SEPARATOR_1_FG="\[\e[30m\]"
+SEPARATOR_1_BG="\[\e[90m\]"
+GIT_STATUS_FG=3
+GIT_STATUS_BG=0
+PRMOPT_CHARACTERS="\044" # $
+PRMOPT_CHARACTERS=""
+PROMPT_FG="\[\e[30m\]"
+PROMPT_BG="\[\e[46m\]"
+PROMPT_FG_2="\[\e[36m\]"
+# Note this requires a patched font such as the ones from nerdfonts.com
+POWERLINE_SEPARATOR=""
+
+POWERLINE_PS1="${FG_1}${BG_1}\W ${ANSI_RESET}${SEPARATOR_1_FG}${SEPARATOR_1_BG}\`parse_git_branch_taylor\`${PROMPT_FG}${PROMPT_BG}${PRMOPT_CHARACTERS}${ANSI_RESET}${PROMPT_FG_2}${POWERLINE_SEPARATOR}${ANSI_RESET} "
+PLAIN_PS1="\h:\W \[\e[33m\]`parse_git_branch_original`\[\e[m\] \[\e[36m\]\$\[\e[m\]"
+
+export PS1=$POWERLINE_PS1
+# export PS1=$PLAIN_PS1
+# export PS1="\\$ "
