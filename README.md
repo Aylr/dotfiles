@@ -1,7 +1,7 @@
 # dotfiles for command line superpowers
 
 Organized dotfiles give you command line superpowers.
-
+![screenshot](bash_screenshot.png)
 This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789), which is a must-read. 
 
 ## Installation
