@@ -2,6 +2,8 @@
 
 Organized dotfiles give you command line superpowers.
 
+This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789), which is a must-read. 
+
 ## Installation
 
 1. `git clone git@github.com:Aylr/dotfiles.git`
@@ -17,5 +19,4 @@ Organized dotfiles give you command line superpowers.
 
 ## References
 
-- This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789)
 - [Maximize Developer productivity on a Mac](https://medium.com/@ankushagarwal/maximize-developer-productivity-on-a-mac-a9ae6fbaedab)
