@@ -34,3 +34,17 @@ alias serve="dbt docs serve"
 alias gserve="dbt docs generate && dbt docs serve"
 
 alias slack="cd ~/repos/sclack/ && s. && ./app.py"
+
+
+# List declared aliases, functions, paths
+alias aliases="alias | sed 's/=.*//'"
+alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
+alias paths='echo -e ${PATH//:/\\n}'
+
+# tree
+alias tree="tree -A"
+alias treed="tree -d"
+alias tree1="tree -d -L 1"
+alias tree2="tree -d -L 2"
+
+alias reload="source ~/.bash_profile"

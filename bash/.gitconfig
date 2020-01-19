@@ -1,0 +1,6 @@
+[user]
+	email = Aylr@users.noreply.github.com
+	name = Aylr
+[core]
+	editor = sublime -n -w
+	autocrlf = input
