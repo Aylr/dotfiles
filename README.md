@@ -10,7 +10,8 @@ This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/
 2. **IMPORTANT** Backup your existing `~/.bash_profile` and `~/.gitconfig` or you **will have data loss.**
 3. In the repo's `.bash_profile`, update the full path to this repo, including the trailing slash.
     - `DOTFILE_DIR=/Users/taylor/repos/dotfiles/`
-3. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
+4. Update the username and email address in the `.gitconfig` file. 
+5. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
 
 ## Notes
 
