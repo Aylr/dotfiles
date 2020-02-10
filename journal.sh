@@ -1,8 +1,23 @@
 JOURNAL_DIR="$HOME/repos/journal"
-DATE=$(date "+%Y-%m-%d")
-FILENAME="$JOURNAL_DIR/$DATE.md"
-HEADER="# $DATE\n\n- "
 NOTE=""
+
+# Parse args
+while [ $# -gt 0 ]; do
+    if [[ $1 == *"--"* ]]; then
+        param="${1/--/}"
+        if [ $param == "date" ]; then
+            date_stamp="$2"
+        else
+            declare $param="$2"
+        fi
+        # echo $param $2
+    fi
+    shift
+done
+
+date_stamp=${date_stamp:-$(date "+%Y-%m-%d")}
+FILENAME="$JOURNAL_DIR/$date_stamp.md"
+HEADER="# $date_stamp\n\n- "
 
 # Input handling
 if [ -p /dev/stdin ]; then
@@ -16,13 +31,14 @@ fi
 # File handling
 if [ -f $FILENAME ]; then
     # file exists
-    if !( grep $DATE $FILENAME -q ); then
-        # date header not in file --> insert it at beginning of file
+    if !( grep $date_stamp $FILENAME -q ); then
+        # date_stamp header not in file --> insert it at beginning of file
         echo "$HEADER$(cat $FILENAME)" > $FILENAME
     fi
 else
     # file doesn't exist --> create it
     echo $HEADER > $FILENAME
 fi
-echo $NOTE >> $FILENAME
+
+if [ -n "$NOTE" ]; then echo $NOTE >> $FILENAME; fi
 cat $FILENAME
