@@ -4,3 +4,5 @@
 [core]
 	editor = sublime -n -w
 	autocrlf = input
+[pager]
+	branch = false
