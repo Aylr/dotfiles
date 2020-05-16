@@ -2,15 +2,15 @@
 
 Organized dotfiles give you command line superpowers.
 ![screenshot](bash_screenshot.png)
-This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789), which is a must-read. 
+This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789), which is a must-read.
 
 ## Installation
 
 1. `git clone git@github.com:Aylr/dotfiles.git`
-2. **IMPORTANT** Backup your existing `~/.bash_profile` and `~/.gitconfig` or you **will have data loss.**
+2. **IMPORTANT** Backup your existing `~/.bash_profile`, `~/.zshrc`, and `~/.gitconfig` or you **will have data loss.**
 3. In the repo's `.bash_profile`, update the full path to this repo, including the trailing slash.
     - `DOTFILE_DIR=/Users/taylor/repos/dotfiles/`
-4. Update the username and email address in the `.gitconfig` file. 
+4. Update the username and email address in the `.gitconfig` file.
 5. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
 
 ## Notes

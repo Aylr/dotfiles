@@ -11,30 +11,57 @@ gitcommit () {
   git commit -m "$1"
 }
 
-gb () {
+gbc () {
   git checkout -b "$1"
 }
+alias gcd="git checkout develop"
+alias gcm="git checkout master"
+alias gc="git checkout"
 alias gd="git diff"
-alias gl="git branch -a"
+alias gb="git branch"
+alias gba="git branch -a"
 alias gs="git status"
 alias gp="git pull"
 alias gf="git fetch"
 alias gcm="git commit -m"
 alias glo="git log --pretty=oneline"
+gpsu () { git push -u origin $(git rev-parse --abbrev-ref HEAD) }
+
+function repogrep() {
+# Courtesy of the one and only Alex
+#  /usr/bin/grep "$1" -R "$2" | /usr/bin/grep -v "Binary\|pyc\|build\|html\|xml"
+  /usr/bin/grep "$1" -R "$2" | /usr/bin/grep -v "Binary\|pyc\|.venv"
+}
+
+#alias js="sublime $(date '+~/repos/journal/%Y-%m-%d.md')" 
+#alias jv="vim $(date '+~/repos/journal/%Y-%m-%d.md')" 
+alias jj="~/repos/dotfiles/journal.sh"
 
 # Handy python stuff
 alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias s.="source venv/bin/activate 2> /dev/null || source .venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias cookiecutter-minimal="cookiecutter https://github.com/Aylr/cookiecutter-python-package-minimal"
 alias jpl="jupyter lab"
+lint () {
+  isort $1
+  black $1
+}
+
+jsonpp() {
+  # Pretty print json
+  cat $1 | python -m json.tool
+}
 
 # Handy dbt stuff
 alias gen="dbt docs generate"
 alias serve="dbt docs serve"
 alias gserve="dbt docs generate && dbt docs serve"
 
-alias slack="cd ~/repos/sclack/ && s. && ./app.py"
+# Misc
 
+alias slack="cd ~/repos/sclack/ && s. && ./app.py"
+alias ge="great_expectations"
+alias marked='open -a "Marked 2"'
 
 # List declared aliases, functions, paths
 alias aliases="alias | sed 's/=.*//'"
@@ -42,9 +69,36 @@ alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
 alias paths='echo -e ${PATH//:/\\n}'
 
 # tree
-alias tree="tree -a -I '.git'"
+alias tree="tree -a -I '.git|.venv|.idea|.ipynb_checkpoints'"
 alias treed="tree -d"
 alias tree1="tree -d -L 1"
 alias tree2="tree -d -L 2"
 
-alias reload="source ~/.bash_profile"
+# Shell specific reload https://stackoverflow.com/questions/9910966/how-to-get-shell-to-self-detect-using-zsh-or-bash
+if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+   # assume Zsh
+   alias reload="source ~/.zshrc"
+elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
+   # assume Bash
+   alias reload="source ~/.bash_profile"
+else
+   # assume something else
+fi
+
+# Travis debug job
+travis-debug-job () {
+  if [ -n "${TRAVIS_ORG_TOKEN}" ] ; then
+  else
+    echo 'Please set your environment variable TRAVIS_ORG_TOKEN. Find this in your travis settings.'
+    return 1
+  fi
+  if [[ $# -eq 0 ]] ; then
+    echo 'Please enter travis job number.'
+    return 1
+  fi
+  echo About to start a debugging job for job "$1"
+
+  curl -s -X POST -H "Content-Type: application/json" -H "Accept: application/json" -H "Travis-API-Version: 3" -H "Authorization: token $TRAVIS_ORG_TOKEN" -d '{ "quiet": true }' https://api.travis-ci.org/job/$1/debug
+
+  open "https://travis-ci.org/great-expectations/great_expectations/jobs/$1"
+}

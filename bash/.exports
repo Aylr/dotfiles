@@ -2,3 +2,6 @@
 
 # Local bin dir in home directory
 export PATH="/Users/taylor/bin:$PATH"
+
+# use the ruby installed with Brew
+export PATH="/usr/local/opt/ruby/bin:$PATH"
