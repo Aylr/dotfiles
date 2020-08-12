@@ -5,3 +5,43 @@ export PATH="/Users/taylor/bin:$PATH"
 
 # use the ruby installed with Brew
 export PATH="/usr/local/opt/ruby/bin:$PATH"
+
+# Google Cloud CLI
+export PATH="/Users/taylor/bin/google-cloud-sdk/bin:$PATH"
+
+# fzf default arguments
+FZF_DEFAULT_OPTS='-m'  # default to multi select mode
+
+# Disable multithreading security that can sometimes bork python processes
+# https://stackoverflow.com/questions/50168647/munegsignal.sigabortltiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr/52230415#52230415
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+# brew python@3.7
+# export PATH="/usr/local/opt/python@3.7/bin:$PATH"
+# ln -s /usr/local/opt/python@3.7/bin/python3 /usr/local/opt/python@3.7/bin/python
+# ln -s /usr/local/opt/python@3.7/bin/pip3 /usr/local/opt/python@3.7/bin/pip
+
+# For compilers to find python@3.7 you may need to set:
+# export LDFLAGS="-L/usr/local/opt/python@3.7/lib"
+# For pkg-config to find python@3.7 you may need to set:
+# export PKG_CONFIG_PATH="/usr/local/opt/python@3.7/lib/pkgconfig"
+
+
+# Python 3.9
+export PATH="/usr/local/opt/python@3.9/bin:$PATH"
+ln -s /usr/local/opt/python@3.9/bin/python3 /usr/local/opt/python@3.9/bin/python
+ln -s /usr/local/opt/python@3.9/bin/pip3 /usr/local/opt/python@3.9/bin/pip
+# For compilers to find python@3.9 you may need to set:
+export LDFLAGS="-L/usr/local/opt/python@3.9/lib"
+# For pkg-config to find python@3.9 you may need to set:
+export PKG_CONFIG_PATH="/usr/local/opt/python@3.9/lib/pkgconfig"
+
+# All the spark stuff
+export JAVA_HOME=`/usr/libexec/java_home -v 1.8.0_212`
+
+export SPARK_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/spark-3.1.2-bin-hadoop3.2'
+export PATH="${PATH}:${SPARK_HOME}/bin"
+export SPARK_LOCAL_IP="127.0.0.1"
+
+export SCALA_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/scala3-3.0.0'
+export PATH="${PATH}:${SCALA_HOME}/bin"

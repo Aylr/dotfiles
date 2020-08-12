@@ -1,12 +1,4 @@
-# Handy git aliases
-gc () {
-  git checkout $1
-}
-
-gcd () {
-  git checkout develop || git checkout master
-}
-
+# Handy Git things
 gitcommit () {
   git commit -m "$1"
 }
@@ -14,16 +6,23 @@ gitcommit () {
 gbc () {
   git checkout -b "$1"
 }
+alias gco="git checkout"
+alias ga="git add"
 alias gcd="git checkout develop"
-alias gcm="git checkout master"
-alias gc="git checkout"
+alias gcmm="git checkout main"
+alias main="git checkout main"
+alias gcn="git checkout next"
 alias gd="git diff"
 alias gb="git branch"
 alias gba="git branch -a"
 alias gs="git status"
+alias gpp="git push"
+alias gppf="git push --force"
 alias gp="git pull"
 alias gf="git fetch"
 alias gcm="git commit -m"
+alias gr="git rebase"
+alias gri="git rebase -i"
 alias glo="git log --pretty=oneline"
 gpsu () { git push -u origin $(git rev-parse --abbrev-ref HEAD) }
 
@@ -33,35 +32,81 @@ function repogrep() {
   /usr/bin/grep "$1" -R "$2" | /usr/bin/grep -v "Binary\|pyc\|.venv"
 }
 
-#alias js="sublime $(date '+~/repos/journal/%Y-%m-%d.md')" 
-#alias jv="vim $(date '+~/repos/journal/%Y-%m-%d.md')" 
+#alias js="sublime $(date '+~/repos/journal/%Y-%m-%d.md')"
+#alias jv="vim $(date '+~/repos/journal/%Y-%m-%d.md')"
 alias jj="~/repos/dotfiles/journal.sh"
+alias j="jj -e"
+alias jjmd="marked `jj -v | grep FILENAME | awk '{print $2}'`"
+
+function jjw () {
+    # A summary of the last 10 files
+    ls ~/repos/journal | grep '20.*\.md' | sort -r | head -n 10 | awk '{print "/Users/taylor/repos/journal/"$1}' | xargs bat --plain
+}
+
+alias vim=nvim
 
 # Handy python stuff
+# alias python="python3"
+# alias pip="pip3"
 alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias s.="source venv/bin/activate 2> /dev/null || source .venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias cookiecutter-minimal="cookiecutter https://github.com/Aylr/cookiecutter-python-package-minimal"
 alias jpl="jupyter lab"
+alias pp="pandas_profiling"
+
+
+function glint () {
+    isort .
+    git status | grep modified | awk '{print $2}' | xargs black
+}
 lint () {
   isort $1
   black $1
 }
+alias pir='pip install -r requirements.txt'
 
 jsonpp() {
   # Pretty print json
   cat $1 | python -m json.tool
 }
 
+# Handy Airflow stuff
+# alias airs="cd /Users/taylor/repos/project/airflow && AIRFLOW_HOME=/Users/taylor/repos/project/airflow airflow scheduler"
+# alias airw="cd /Users/taylor/repos/project/airflow && AIRFLOW_HOME=/Users/taylor/repos/project/airflow airflow webserver"
+
 # Handy dbt stuff
 alias gen="dbt docs generate"
 alias serve="dbt docs serve"
 alias gserve="dbt docs generate && dbt docs serve"
+
+# handy docker stuff
+alias d="docker"
+alias di="docker images"
+alias db="docker build"
+alias dr="docker run"
+alias drb="docker run -it --entrypoint /bin/bash"
+
+# handy kubernetes stuff
+alias k='kubectl'
+alias kp='kubectl get pods'
+alias kpr='kubectl get pods --field-selector status.phase=Running'
+
 
 # Misc
 
 alias slack="cd ~/repos/sclack/ && s. && ./app.py"
 alias ge="great_expectations"
 alias marked='open -a "Marked 2"'
+alias cat='bat'
+
+# Pulumi
+alias pup='pulumi up'
+alias puppy='pulumi up --yes'
+alias puppies='pulumi up --yes --skip-preview'
+alias puup='pulumi up --yes --skip-preview'
+alias pr='pulumi refresh'
+alias pry='pulumi refresh --yes'
+alias pancakes='pulumi stack export | pulumi stack import'
 
 # List declared aliases, functions, paths
 alias aliases="alias | sed 's/=.*//'"
@@ -69,7 +114,7 @@ alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
 alias paths='echo -e ${PATH//:/\\n}'
 
 # tree
-alias tree="tree -a -I '.git|.venv|.idea|.ipynb_checkpoints'"
+alias tree="tree -a -I '.git|.venv|node_modules|.idea|.ipynb_checkpoints|.mypy_cache'"
 alias treed="tree -d"
 alias tree1="tree -d -L 1"
 alias tree2="tree -d -L 2"
