@@ -6,3 +6,7 @@
 	autocrlf = input
 [pager]
 	branch = false
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false

@@ -5,3 +5,8 @@ export PATH="/Users/taylor/bin:$PATH"
 
 # use the ruby installed with Brew
 export PATH="/usr/local/opt/ruby/bin:$PATH"
+
+# Google Cloud CLI
+export PATH="/Users/taylor/bin/google-cloud-sdk/bin:$PATH"
+
+

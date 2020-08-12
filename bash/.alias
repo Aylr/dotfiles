@@ -1,12 +1,4 @@
-# Handy git aliases
-gc () {
-  git checkout $1
-}
-
-gcd () {
-  git checkout develop || git checkout master
-}
-
+# Handy Git things
 gitcommit () {
   git commit -m "$1"
 }
@@ -15,8 +7,8 @@ gbc () {
   git checkout -b "$1"
 }
 alias gcd="git checkout develop"
-alias gcm="git checkout master"
-alias gc="git checkout"
+alias gcmm="git checkout main"
+alias gcn="git checkout next"
 alias gd="git diff"
 alias gb="git branch"
 alias gba="git branch -a"
@@ -46,6 +38,7 @@ lint () {
   isort $1
   black $1
 }
+alias pir='pip install -r requirements.txt'
 
 jsonpp() {
   # Pretty print json
@@ -62,6 +55,15 @@ alias gserve="dbt docs generate && dbt docs serve"
 alias slack="cd ~/repos/sclack/ && s. && ./app.py"
 alias ge="great_expectations"
 alias marked='open -a "Marked 2"'
+alias cat='bat'
+
+# Pulumi
+alias pup='pulumi up'
+alias puppy='pulumi up --yes'
+alias puppies='pulumi up --yes --skip-preview'
+alias pr='pulumi refresh'
+alias pry='pulumi refresh --yes'
+alias pancakes='pulumi stack export | pulumi stack import'
 
 # List declared aliases, functions, paths
 alias aliases="alias | sed 's/=.*//'"
@@ -69,7 +71,7 @@ alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
 alias paths='echo -e ${PATH//:/\\n}'
 
 # tree
-alias tree="tree -a -I '.git|.venv|.idea|.ipynb_checkpoints'"
+alias tree="tree -a -I '.git|.venv|.idea|.ipynb_checkpoints|.mypy_cache'"
 alias treed="tree -d"
 alias tree1="tree -d -L 1"
 alias tree2="tree -d -L 2"
