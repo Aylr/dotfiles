@@ -1,7 +1,7 @@
 # dotfiles for command line superpowers
 
 Organized dotfiles give you command line superpowers.
-![screenshot](bash_screenshot.png)
+![screenshot](screenshots/bash_screenshot.png)
 This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/@webprolific/getting-started-with-dotfiles-43c3602fd789), which is a must-read.
 
 ## Installation
@@ -11,11 +11,14 @@ This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/
 3. In the repo's `.bash_profile`, update the full path to this repo, including the trailing slash.
     - `DOTFILE_DIR=/Users/taylor/repos/dotfiles/`
 4. Update the username and email address in the `.gitconfig` file.
-5. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
+5. From the repo directory, run `brew.sh` to install a few programs with brew.
+6. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
+
 
 ## Features
 
 - Piles of useful aliases
+- A nice themed neovim setup ![neovim screenshot](screenshots/neovim.png)
 - A lightning-quick journaling utility
     - View your current entry with `jj`
     - Create or edit the current day's entry with `jj -e` which uses your `$EDITOR`

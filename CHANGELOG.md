@@ -3,6 +3,12 @@
 
 ## [Unreleased]
 
+### Added
+
+* brew install script
+* A nice clean neovim setup including plugins and themes.
+* Default git branch name uses more inclusive language
+
 ## [0.2.0] - 2020-05-017-06-20
 
 ### Added
