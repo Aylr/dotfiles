@@ -108,7 +108,7 @@ if [ -n "$OPEN_EDITOR" ]; then
 	if [ -n "$EDITOR" ]; then
 		$EDITOR $FILENAME;
 	else
-		vim $FILENAME;
+		nvim $FILENAME;
 	fi
 else
 	cat $FILENAME;

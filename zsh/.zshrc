@@ -124,3 +124,5 @@ source ${DOTFILE_DIR}bash/.secrets
 autoload -Uz compinit
 zstyle ':completion:*' menu select
 fpath+=~/.zfunc
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

@@ -6,16 +6,23 @@ gitcommit () {
 gbc () {
   git checkout -b "$1"
 }
+alias gco="git checkout"
+alias ga="git add"
 alias gcd="git checkout develop"
 alias gcmm="git checkout main"
+alias main="git checkout main"
 alias gcn="git checkout next"
 alias gd="git diff"
 alias gb="git branch"
 alias gba="git branch -a"
 alias gs="git status"
+alias gpp="git push"
+alias gppf="git push --force"
 alias gp="git pull"
 alias gf="git fetch"
 alias gcm="git commit -m"
+alias gr="git rebase"
+alias gri="git rebase -i"
 alias glo="git log --pretty=oneline"
 gpsu () { git push -u origin $(git rev-parse --abbrev-ref HEAD) }
 
@@ -28,6 +35,15 @@ function repogrep() {
 #alias js="sublime $(date '+~/repos/journal/%Y-%m-%d.md')" 
 #alias jv="vim $(date '+~/repos/journal/%Y-%m-%d.md')" 
 alias jj="~/repos/dotfiles/journal.sh"
+alias j="jj -e"
+alias jjmd="marked `jj -v | grep FILENAME | awk '{print $2}'`"
+
+function jjw () {
+    # A summary of the last 10 files
+    ls ~/repos/journal | grep '20.*\.md' | sort -r | head -n 10 | awk '{print "/Users/taylor/repos/journal/"$1}' | xargs bat --plain
+}
+
+alias vim=nvim
 
 # Handy python stuff
 alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
@@ -45,11 +61,20 @@ jsonpp() {
   cat $1 | python -m json.tool
 }
 
+# Handy Airflow stuff
+alias airs="cd $AIRFLOW_HOME && airflow scheduler"
+alias airw="cd $AIRFLOW_HOME && airflow webserver"
 # Handy dbt stuff
 alias gen="dbt docs generate"
 alias serve="dbt docs serve"
 alias gserve="dbt docs generate && dbt docs serve"
 
+# handy docker stuff
+alias d="docker"
+alias di="docker images"
+alias db="docker build"
+alias dr="docker run"
+alias drb="docker run -it --entrypoint /bin/bash"
 # Misc
 
 alias slack="cd ~/repos/sclack/ && s. && ./app.py"
@@ -61,6 +86,7 @@ alias cat='bat'
 alias pup='pulumi up'
 alias puppy='pulumi up --yes'
 alias puppies='pulumi up --yes --skip-preview'
+alias puup='pulumi up --yes --skip-preview'
 alias pr='pulumi refresh'
 alias pry='pulumi refresh --yes'
 alias pancakes='pulumi stack export | pulumi stack import'
@@ -71,7 +97,7 @@ alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
 alias paths='echo -e ${PATH//:/\\n}'
 
 # tree
-alias tree="tree -a -I '.git|.venv|.idea|.ipynb_checkpoints|.mypy_cache'"
+alias tree="tree -a -I '.git|.venv|node_modules|.idea|.ipynb_checkpoints|.mypy_cache'"
 alias treed="tree -d"
 alias tree1="tree -d -L 1"
 alias tree2="tree -d -L 2"

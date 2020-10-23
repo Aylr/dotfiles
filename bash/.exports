@@ -9,4 +9,9 @@ export PATH="/usr/local/opt/ruby/bin:$PATH"
 # Google Cloud CLI
 export PATH="/Users/taylor/bin/google-cloud-sdk/bin:$PATH"
 
+# fzf default arguments
+FZF_DEFAULT_OPTS='-m'  # default to multi select mode
 
+# Disable multithreading security that can sometimes bork python processes
+# https://stackoverflow.com/questions/50168647/munegsignal.sigabortltiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr/52230415#52230415
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
