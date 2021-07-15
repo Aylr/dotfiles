@@ -1,8 +1,30 @@
 [user]
 	email = Aylr@users.noreply.github.com
 	name = Aylr
+
 [core]
 	editor = sublime -n -w
 	autocrlf = input
+	pager = delta
+
+[delta]
+    plus-style = "syntax #012800"
+    minus-style = "syntax #340001"
+    syntax-theme = Monokai Extended
+    navigate = true
+    side-by-side = true
+
+[interactive]
+    diffFilter = delta --color-only
+
 [pager]
 	branch = false
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
