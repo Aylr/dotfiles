@@ -13,7 +13,7 @@ This was heavily inspired by [Getting Started With Dotfiles](https://medium.com/
 4. Update the username and email address in the `.gitconfig` file.
 5. From the repo directory, run `brew.sh` to install a few programs with brew.
 6. From the repo directory, run `install.sh`. All this really does is drop symlinks into your home directory, which you can easily do yourself **after you backup existing files!**
-
+7. **NOTE** You might need to run `p10k` configure if something seems wrong with the prompt
 
 ## Features
 

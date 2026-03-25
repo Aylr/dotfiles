@@ -1,5 +1,8 @@
 # Non secret exports
 
+# Python 3.13
+export PATH="/usr/local/Cellar/python@3.13/3.13.4/bin:${PATH}"
+
 # Local bin dir in home directory
 export PATH="/Users/taylor/bin:$PATH"
 
@@ -27,21 +30,22 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 # export PKG_CONFIG_PATH="/usr/local/opt/python@3.7/lib/pkgconfig"
 
 
+# Python 3.11 installed with Brew
+# export PATH="/usr/local/opt/python@3.11/libexec/bin:$PATH"
+
 # Python 3.9
-export PATH="/usr/local/opt/python@3.9/bin:$PATH"
-ln -s /usr/local/opt/python@3.9/bin/python3 /usr/local/opt/python@3.9/bin/python
-ln -s /usr/local/opt/python@3.9/bin/pip3 /usr/local/opt/python@3.9/bin/pip
+# export PATH="/usr/local/opt/python@3.9/bin:$PATH"
+# [ -e "/usr/local/opt/python@3.9/bin/python" ] || ln -s /usr/local/opt/python@3.9/bin/python3 /usr/local/opt/python@3.9/bin/python
+# [ -e "/usr/local/opt/python@3.9/bin/pip" ] || ln -s /usr/local/opt/python@3.9/bin/pip3 /usr/local/opt/python@3.9/bin/pip
 # For compilers to find python@3.9 you may need to set:
-export LDFLAGS="-L/usr/local/opt/python@3.9/lib"
+# export LDFLAGS="-L/usr/local/opt/python@3.9/lib"
 # For pkg-config to find python@3.9 you may need to set:
-export PKG_CONFIG_PATH="/usr/local/opt/python@3.9/lib/pkgconfig"
+# export PKG_CONFIG_PATH="/usr/local/opt/python@3.9/lib/pkgconfig"
 
 # All the spark stuff
-export JAVA_HOME=`/usr/libexec/java_home -v 1.8.0_212`
-
-export SPARK_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/spark-3.1.2-bin-hadoop3.2'
-export PATH="${PATH}:${SPARK_HOME}/bin"
-export SPARK_LOCAL_IP="127.0.0.1"
-
-export SCALA_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/scala3-3.0.0'
-export PATH="${PATH}:${SCALA_HOME}/bin"
+# export JAVA_HOME=`/usr/libexec/java_home -v 1.8.0_212`
+# export SPARK_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/spark-3.1.2-bin-hadoop3.2'
+# export PATH="${PATH}:${SPARK_HOME}/bin"
+# export SPARK_LOCAL_IP="127.0.0.1"
+# export SCALA_HOME='/Users/taylor/Library/Local/SoftwareDevelopment/scala3-3.0.0'
+# export PATH="${PATH}:${SCALA_HOME}/bin"

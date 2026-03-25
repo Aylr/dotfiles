@@ -1,11 +1,17 @@
-[user]
-	email = Aylr@users.noreply.github.com
-	name = Aylr
+[includeIf "gitdir:~/repos/"]
+	path = .gitconfig-professional
+[includeIf "gitdir:~/repos/dotfiles/"]
+	path = .gitconfig-personal
+[includeIf "gitdir:~/repos/journal/"]
+	path = .gitconfig-personal
+# reference: https://blog.thomasheartman.com/posts/modularizing-your-git-config-with-conditional-includes
 
 [core]
-	editor = sublime -n -w
-	autocrlf = input
+	editor = nvim
+	# autocrlf = input
 	pager = delta
+	eol = lf
+	autocrlf = input
 
 [delta]
     plus-style = "syntax #012800"
@@ -28,3 +34,11 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[user]
+	email = Aylr@users.noreply.github.com
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/local/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/local/bin/gh auth git-credential

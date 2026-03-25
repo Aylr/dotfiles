@@ -11,3 +11,7 @@ source "${DOTFILE_DIR}bash/.autocompletion"
 source "${DOTFILE_DIR}bash/.infinite_history"
 source "${DOTFILE_DIR}bash/.exports"
 source "${DOTFILE_DIR}bash/.secrets"
+
+source /Users/taylor/.config/broot/launcher/bash/br
+
+. "$HOME/.local/bin/env"

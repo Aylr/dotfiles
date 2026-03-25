@@ -1,3 +1,11 @@
+# Handy ls things using eza
+alias ll="eza --long --all --icons"
+alias l="eza --long --icons"
+
+# Claude
+alias dangerclaude="claude --dangerously-skip-permissions"
+
+
 # Handy Git things
 gitcommit () {
   git commit -m "$1"
@@ -25,6 +33,7 @@ alias gr="git rebase"
 alias gri="git rebase -i"
 alias glo="git log --pretty=oneline"
 gpsu () { git push -u origin $(git rev-parse --abbrev-ref HEAD) }
+alias gum="gco main && gp && gf -p"
 
 function repogrep() {
 # Courtesy of the one and only Alex
@@ -46,14 +55,16 @@ function jjw () {
 alias vim=nvim
 
 # Handy python stuff
-# alias python="python3"
-# alias pip="pip3"
+alias python="python3"
+alias pip="pip3"
+alias pipl="pip list"
+alias vv="virtualenv .venv"
 alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias s.="source venv/bin/activate 2> /dev/null || source .venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias cookiecutter-minimal="cookiecutter https://github.com/Aylr/cookiecutter-python-package-minimal"
 alias jpl="jupyter lab"
 alias pp="pandas_profiling"
-
+alias m.="mypy ."
 
 function glint () {
     isort .
@@ -64,6 +75,7 @@ lint () {
   black $1
 }
 alias pir='pip install -r requirements.txt'
+alias pi.='pip install -e .'
 
 jsonpp() {
   # Pretty print json
@@ -78,13 +90,19 @@ jsonpp() {
 alias gen="dbt docs generate"
 alias serve="dbt docs serve"
 alias gserve="dbt docs generate && dbt docs serve"
-
+dbttr () {
+  dbt run --select "$1" && dbt test --select "$1"
+}
 # handy docker stuff
 alias d="docker"
 alias di="docker images"
 alias db="docker build"
 alias dr="docker run"
 alias drb="docker run -it --entrypoint /bin/bash"
+
+# handy aws stuff
+alias sls="aws s3 ls"
+alias slsr="aws s3 ls --recursive"
 
 # handy kubernetes stuff
 alias k='kubectl'
@@ -100,6 +118,9 @@ alias marked='open -a "Marked 2"'
 alias cat='bat'
 
 # Pulumi
+alias p'pulumi'
+alias pp='pulumi preview'
+alias pd='pulumi destroy'
 alias pup='pulumi up'
 alias puppy='pulumi up --yes'
 alias puppies='pulumi up --yes --skip-preview'

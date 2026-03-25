@@ -126,31 +126,3 @@ zstyle ':completion:*' menu select
 fpath+=~/.zfunc
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/taylor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/taylor/Downloads/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
-
-source /Users/taylor/.config/broot/launcher/bash/br
-export PATH="/usr/local/opt/openjdk/bin:$PATH"
-export PATH="/usr/local/opt/node@16/bin:$PATH"
-
-export PATH="/usr/loca/bin:$PATH"
-
-# cargo path
-export PATH="/Users/taylor/.cargo/bin:$PATH"
-
-
-. "$HOME/.local/bin/env"
-
-# Amp CLI
-# export PATH="/Users/taylor/.amp/bin:$PATH"
-
-# OpenClaw Completion
-source "/Users/taylor/.openclaw/completions/openclaw.zsh"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

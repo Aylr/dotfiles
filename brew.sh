@@ -13,11 +13,14 @@ brew install bash-completion2
 
 # Install apps
 brew install --cask atom
+brew install --cask alfred
+brew install --cask spotify
 
 # zsh sundries
 brew install romkatv/powerlevel10k/powerlevel10k
 
 # Install useful tools
+brew install ripgrep  # rg fast grep tool
 brew install bat
 brew install xsv  # CSV CLI tools written in Rust
 brew install csvkit
@@ -26,7 +29,10 @@ brew install git
 brew install git-lfs
 brew install git-delta
 brew install gh  # GitHub CLI
-brew install exa  # modern ls replacement
+brew install eza  # modern ls replacement
+brew install watchexec # file watcher: https://github.com/watchexec/watchexec
+brew install jq
+
 # brew install csvkit
 
  # fuzzy command line finder https://github.com/junegunn/fzf#usage
