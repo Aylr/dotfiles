@@ -113,6 +113,16 @@ else
     success "oh-my-zsh already installed."
 fi
 
+# Symlink Powerlevel10k theme into oh-my-zsh (installed via Homebrew)
+P10K_OMZ_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+P10K_BREW="$(brew --prefix powerlevel10k)/share/powerlevel10k"
+if [[ ! -d "$P10K_OMZ_DIR" ]] && [[ -d "$P10K_BREW" ]]; then
+    ln -s "$P10K_BREW" "$P10K_OMZ_DIR"
+    success "Powerlevel10k theme linked into oh-my-zsh."
+else
+    success "Powerlevel10k theme already in oh-my-zsh."
+fi
+
 # Powerlevel10k fonts
 info "Installing Powerlevel10k fonts..."
 FONTS_DIR="$HOME/Library/Fonts"

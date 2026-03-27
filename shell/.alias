@@ -37,14 +37,11 @@ function repogrep() {
   /usr/bin/grep "$1" -R "$2" | /usr/bin/grep -v "Binary\|pyc\|.venv"
 }
 
-#alias js="sublime $(date '+~/repos/journal/%Y-%m-%d.md')"
-#alias jv="vim $(date '+~/repos/journal/%Y-%m-%d.md')"
 alias jj="~/repos/dotfiles/journal.sh"
 alias j="jj -e"
-alias jjmd="marked `jj -v | grep FILENAME | awk '{print $2}'`"
+jjmd() { marked "$(jj -v | grep FILENAME | awk '{print $2}')"; }
 
 function jjw () {
-    # A summary of the last 10 files
     ls ~/repos/journal | grep '20.*\.md' | sort -r | head -n 10 | awk -v dir="$HOME/repos/journal/" '{print dir $1}' | xargs bat --plain
 }
 
