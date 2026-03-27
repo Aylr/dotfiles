@@ -133,24 +133,23 @@ if [ -f '/Users/taylor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/User
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
-source /Users/taylor/.config/broot/launcher/bash/br
-export PATH="/usr/local/opt/openjdk/bin:$PATH"
-export PATH="/usr/local/opt/node@16/bin:$PATH"
+[ -f "$HOME/.config/broot/launcher/bash/br" ] && source "$HOME/.config/broot/launcher/bash/br"
+# OpenJDK (if installed via Homebrew)
+[ -d "$BREW_PREFIX/opt/openjdk/bin" ] && export PATH="$BREW_PREFIX/opt/openjdk/bin:$PATH"
 
-export PATH="/usr/loca/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
 
 # cargo path
-export PATH="/Users/taylor/.cargo/bin:$PATH"
+[ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 
 
-. "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
-# Amp CLI
-# export PATH="/Users/taylor/.amp/bin:$PATH"
 
 # OpenClaw Completion
-source "/Users/taylor/.openclaw/completions/openclaw.zsh"
+# source "/Users/taylor/.openclaw/completions/openclaw.zsh"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="$HOME/.local/bin:$PATH"
