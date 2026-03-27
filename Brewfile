@@ -6,6 +6,7 @@ tap "supabase/tap"
 brew "python"
 brew "python-tk"                          # Tk bindings for Python
 brew "uv"                                 # Fast Python package manager
+brew "zsh"
 brew "bash"
 brew "bash-completion@2"
 # brew "go"
@@ -85,9 +86,8 @@ cask "zoom"
 # cask "telegram"
 
 # Dev tools
-cask "claude"
-cask "postgres-unofficial"                # Postgres.app
-cask "tailscale"
+cask "postgres-app"                       # Postgres.app
+cask "tailscale-app"
 # cask "docker"
 # cask "tableplus"
 # cask "postman"
@@ -121,7 +121,7 @@ cask "bambu-studio"                       # 3D printer slicer
 # cask "autodesk-fusion"
 
 # System utilities
-cask "flux"
+cask "flux-app"
 cask "appcleaner"
 # cask "karabiner-elements"
 # cask "caffeine"
