@@ -5,7 +5,9 @@ brew upgrade
 
 # Python
 brew install python
-brew install python-tk                     # useful if anything is using tk such as pandas_profiling
+brew install python-tk                     # useful if anything is using tk such as eandas_profiling
+brew install uv
+
 
 # Install a modern version of Bash.
 brew install bash
@@ -42,12 +44,11 @@ brew install jq
 
 # fuzzy command line finder https://github.com/junegunn/fzf#usage
 brew install fzf
-$(brew --prefix)/opt/fzf/install
+# NOTE: fzf shell integration is run in setup.sh Stage 5
 
 # Dev tools
 brew install tmux
 brew install supabase/tap/supabase
-brew install tailscale
 brew install --cask iterm2
 brew install --cask tailscale
 

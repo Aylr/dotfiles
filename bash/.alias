@@ -112,13 +112,12 @@ alias kpr='kubectl get pods --field-selector status.phase=Running'
 
 # Misc
 
-alias slack="cd ~/repos/sclack/ && s. && ./app.py"
 alias ge="great_expectations"
 alias marked='open -a "Marked 2"'
 alias cat='bat'
 
 # Pulumi
-alias p'pulumi'
+alias p='pulumi'
 alias pp='pulumi preview'
 alias pd='pulumi destroy'
 alias pup='pulumi up'
@@ -151,20 +150,3 @@ else
    # assume something else
 fi
 
-# Travis debug job
-travis-debug-job () {
-  if [ -n "${TRAVIS_ORG_TOKEN}" ] ; then
-  else
-    echo 'Please set your environment variable TRAVIS_ORG_TOKEN. Find this in your travis settings.'
-    return 1
-  fi
-  if [[ $# -eq 0 ]] ; then
-    echo 'Please enter travis job number.'
-    return 1
-  fi
-  echo About to start a debugging job for job "$1"
-
-  curl -s -X POST -H "Content-Type: application/json" -H "Accept: application/json" -H "Travis-API-Version: 3" -H "Authorization: token $TRAVIS_ORG_TOKEN" -d '{ "quiet": true }' https://api.travis-ci.org/job/$1/debug
-
-  open "https://travis-ci.org/great-expectations/great_expectations/jobs/$1"
-}
