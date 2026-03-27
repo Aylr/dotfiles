@@ -11,6 +11,7 @@ brew "bash"
 brew "bash-completion@2"
 # brew "go"
 # brew "rust"
+brew "fnm"                                # Fast Node version manager
 # brew "node"
 # brew "deno"
 
