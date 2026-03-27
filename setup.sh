@@ -80,9 +80,10 @@ fi
 
 # ── Stage 2: Packages ────────────────────────────────────────────────────────
 
-header "Stage 2: Packages (brew.sh)"
+header "Stage 2: Packages (Brewfile)"
 
-bash "$DOTFILES_DIR/brew.sh"
+info "Running brew bundle..."
+brew bundle --file="$DOTFILES_DIR/Brewfile"
 success "Packages installed."
 
 # ── Stage 3: Shell ───────────────────────────────────────────────────────────
