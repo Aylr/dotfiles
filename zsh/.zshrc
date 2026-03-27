@@ -11,9 +11,9 @@ source $ZSH/oh-my-zsh.sh
 
 # ── Dotfile modules ──────────────────────────────────────────────────────────
 export DOTFILE_DIR="$HOME/repos/dotfiles/"
-source ${DOTFILE_DIR}bash/.alias
-source ${DOTFILE_DIR}bash/.exports
-[ -f ${DOTFILE_DIR}bash/.secrets ] && source ${DOTFILE_DIR}bash/.secrets
+source ${DOTFILE_DIR}shell/.alias
+source ${DOTFILE_DIR}shell/.exports
+[ -f ${DOTFILE_DIR}shell/.secrets ] && source ${DOTFILE_DIR}shell/.secrets
 
 # ── Prompt ───────────────────────────────────────────────────────────────────
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

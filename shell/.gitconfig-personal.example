@@ -1,0 +1,5 @@
+# Copy to ~/.gitconfig-personal and fill in your personal identity.
+# This is included automatically for ~/repos/dotfiles/ and ~/repos/journal/ (see .gitconfig includeIf).
+[user]
+	name = Taylor Larsen
+	email = Aylr@users.noreply.github.com
