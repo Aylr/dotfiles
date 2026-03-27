@@ -63,7 +63,6 @@ alias s..="source ../venv/bin/activate 2> /dev/null || source ../.venv/bin/activ
 alias s.="source venv/bin/activate 2> /dev/null || source .venv/bin/activate 2> /dev/null || echo 'Could not find your virtualenv'"
 alias cookiecutter-minimal="cookiecutter https://github.com/Aylr/cookiecutter-python-package-minimal"
 alias jpl="jupyter lab"
-alias pp="pandas_profiling"
 alias m.="mypy ."
 
 function glint () {
