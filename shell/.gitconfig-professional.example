@@ -1,0 +1,5 @@
+# Copy to ~/.gitconfig-professional and fill in your work identity.
+# This is included automatically for repos under ~/repos/ (see .gitconfig includeIf).
+[user]
+	name = Taylor Miller
+	email = your-work-email@company.com

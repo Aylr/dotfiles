@@ -7,10 +7,6 @@ alias dangerclaude="claude --dangerously-skip-permissions"
 
 
 # Handy Git things
-gitcommit () {
-  git commit -m "$1"
-}
-
 gbc () {
   git checkout -b "$1"
 }
@@ -49,7 +45,7 @@ alias jjmd="marked `jj -v | grep FILENAME | awk '{print $2}'`"
 
 function jjw () {
     # A summary of the last 10 files
-    ls ~/repos/journal | grep '20.*\.md' | sort -r | head -n 10 | awk '{print "/Users/taylor/repos/journal/"$1}' | xargs bat --plain
+    ls ~/repos/journal | grep '20.*\.md' | sort -r | head -n 10 | awk -v dir="$HOME/repos/journal/" '{print dir $1}' | xargs bat --plain
 }
 
 alias vim=nvim

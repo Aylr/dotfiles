@@ -35,7 +35,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "Stages:"
     echo "  0  Prerequisites   (Xcode CLT)"
     echo "  1  Homebrew        (install + update)"
-    echo "  2  Packages        (brew.sh)"
+    echo "  2  Packages        (Brewfile)"
     echo "  3  Shell           (zsh default, oh-my-zsh, p10k fonts)"
     echo "  4  Symlinks        (shell configs, gitconfig)"
     echo "  5  fzf             (shell integration)"
@@ -159,10 +159,21 @@ symlink() {
     success "Linked $dst → $src"
 }
 
-symlink "$DOTFILES_DIR/zsh/.zshrc"         "$HOME/.zshrc"
-symlink "$DOTFILES_DIR/zsh/.p10k.zsh"      "$HOME/.p10k.zsh"
-symlink "$DOTFILES_DIR/bash/.bash_profile"  "$HOME/.bash_profile"
-symlink "$DOTFILES_DIR/bash/.gitconfig"     "$HOME/.gitconfig"
+symlink "$DOTFILES_DIR/zsh/.zshrc"          "$HOME/.zshrc"
+symlink "$DOTFILES_DIR/zsh/.p10k.zsh"       "$HOME/.p10k.zsh"
+symlink "$DOTFILES_DIR/shell/.gitconfig"    "$HOME/.gitconfig"
+
+# Git identity configs (copy examples if not already set up)
+for variant in professional personal; do
+    if [[ ! -f "$HOME/.gitconfig-$variant" ]]; then
+        if [[ -f "$DOTFILES_DIR/shell/.gitconfig-$variant.example" ]]; then
+            cp "$DOTFILES_DIR/shell/.gitconfig-$variant.example" "$HOME/.gitconfig-$variant"
+            warn "Created ~/.gitconfig-$variant from example — edit it with your identity."
+        fi
+    else
+        success "~/.gitconfig-$variant already exists."
+    fi
+done
 
 # ── Stage 5: fzf shell integration ──────────────────────────────────────────
 
@@ -172,7 +183,7 @@ if command -v fzf &>/dev/null; then
     "$(brew --prefix)/opt/fzf/install" --all --no-update-rc --no-bash --no-fish 2>/dev/null || true
     success "fzf shell integration installed."
 else
-    warn "fzf not found — skipping. Run brew.sh first."
+    warn "fzf not found — skipping. Run brew bundle first."
 fi
 
 # ── Stage 6: Neovim (optional) ───────────────────────────────────────────────
@@ -195,28 +206,17 @@ echo -e "${GREEN}${BOLD}  All done! A few things still need manual attention:${N
 echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "  ${BOLD}1. Git identity${NC}"
-echo    "     Edit bash/.gitconfig and set your name + email under [user]"
+echo    "     Create shell/.gitconfig-professional with your [user] name + email"
+echo    "     Create shell/.gitconfig-personal for personal repos (dotfiles, journal)"
 echo ""
 echo -e "  ${BOLD}2. Secrets file${NC}"
-echo    "     Create ~/.secrets with your API keys and tokens"
-echo    "     (see bash/.secrets if you have a backup)"
+echo    "     Create shell/.secrets with your API keys and tokens"
 echo ""
 echo -e "  ${BOLD}3. GitHub CLI auth${NC}"
 echo    "     gh auth login"
 echo ""
-echo -e "  ${BOLD}4. Update DOTFILE_DIR in bash/.bash_profile${NC}"
-echo    "     Set it to: $DOTFILES_DIR"
-echo ""
-echo -e "  ${BOLD}5. Python PATH in bash/.exports${NC}"
-echo    "     Update the Python version path — check with:"
-echo    "     brew --prefix python@3.13"
-echo ""
-echo -e "  ${BOLD}6. iTerm2 color scheme${NC}"
-echo    "     Preferences → Profiles → Colors → Color Presets → Import"
-echo    "     File: $DOTFILES_DIR/Adventure.itermcolors"
-echo ""
-echo -e "  ${BOLD}7. Configure the p10k prompt${NC}"
+echo -e "  ${BOLD}4. Configure the p10k prompt${NC}"
 echo    "     p10k configure"
 echo ""
-echo -e "  ${BOLD}8. Restart your terminal.${NC}"
+echo -e "  ${BOLD}5. Restart your terminal.${NC}"
 echo ""
