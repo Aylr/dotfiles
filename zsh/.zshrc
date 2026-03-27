@@ -127,11 +127,14 @@ fpath+=~/.zfunc
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/taylor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/taylor/Downloads/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/taylor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+# Google Cloud SDK (installed via brew cask or manual install)
+if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then
+  . "$HOME/google-cloud-sdk/path.zsh.inc"
+  [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ] && . "$HOME/google-cloud-sdk/completion.zsh.inc"
+elif [ -f "$BREW_PREFIX/share/google-cloud-sdk/path.zsh.inc" ]; then
+  . "$BREW_PREFIX/share/google-cloud-sdk/path.zsh.inc"
+  [ -f "$BREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc" ] && . "$BREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc"
+fi
 
 [ -f "$HOME/.config/broot/launcher/bash/br" ] && source "$HOME/.config/broot/launcher/bash/br"
 # OpenJDK (if installed via Homebrew)
