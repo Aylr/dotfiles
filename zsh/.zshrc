@@ -45,3 +45,8 @@ command -v fnm &>/dev/null && eval "$(fnm env)"
 [ -d "$BREW_PREFIX/opt/openjdk/bin" ] && export PATH="$BREW_PREFIX/opt/openjdk/bin:$PATH"
 [ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+
+# NVM for cortex
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+

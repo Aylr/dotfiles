@@ -4,6 +4,7 @@ alias l="eza --long --icons"
 
 # Claude
 alias dangerclaude="claude --dangerously-skip-permissions"
+alias teledangerclaude="claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-official"
 
 
 # Handy Git things

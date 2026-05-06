@@ -95,6 +95,8 @@ cask "tailscale-app"
 # cask "ngrok"
 # cask "cyberduck"
 # cask "google-cloud-sdk"
+"sentry-cli"
+
 
 # Productivity
 cask "alfred"
@@ -141,3 +143,4 @@ cask "swish"
 # Voice & dictation
 # cask "aqua-voice"
 # cask "wispr-flow"
+brew "sentry-cli"
