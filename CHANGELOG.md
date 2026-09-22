@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0] - 2026-09-22
+
+### Added
+
+* `bin/git-prune-merged` (`git prune-merged`, `-n` for a dry run): deletes local branches and their worktrees once merged into the default branch, squash merges included; keeps dirty worktrees and unmerged branches
+* `bin/` is on `PATH` via `.zshrc`
+
 ## [0.4.0] - 2026-03-27
 
 ### Changed
