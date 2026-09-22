@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Delete local branches (and their worktrees) already merged into the default branch, squash merges included.
+set -euo pipefail
+
+dry=0
+[[ "${1:-}" == "-n" || "${1:-}" == "--dry-run" ]] && dry=1
+
+git rev-parse --git-dir >/dev/null
+git fetch -q --prune origin 2>/dev/null || true
+git worktree prune
+
+default=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)
+default=${default:-$(git show-ref -q --verify refs/heads/main && echo main || echo master)}
+base=$(git rev-parse -q --verify "origin/$default" || git rev-parse "$default")
+here=$(git rev-parse --show-toplevel)
+
+worktrees=$(git worktree list --porcelain | awk '/^worktree /{p=substr($0,10)} /^branch /{sub("refs/heads/","",$2); print $2"\t"p}')
+main_tree=$(git worktree list --porcelain | awk '/^worktree /{print substr($0,10); exit}')
+
+is_merged() {
+  git merge-base --is-ancestor "$1" "$base" && return 0
+  local mb squash
+  mb=$(git merge-base "$base" "$1") || return 1
+  squash=$(git commit-tree "$1^{tree}" -p "$mb" -m _)
+  [[ $(git cherry "$base" "$squash") == -* ]]
+}
+
+deleted=0 skipped=()
+while read -r branch; do
+  [[ "$branch" == "$default" ]] && continue
+  is_merged "$branch" || continue
+  path=$(awk -F'\t' -v b="$branch" '$1==b{print $2}' <<<"$worktrees")
+  if [[ -n "$path" ]]; then
+    if [[ "$path" == "$main_tree" || "$path" == "$here" ]]; then skipped+=("$branch (checked out here)"); continue; fi
+    if [[ -n $(git -C "$path" status --porcelain) ]]; then skipped+=("$branch (dirty: $path)"); continue; fi
+    if (( dry )); then echo "would remove $path"
+    elif ! git worktree remove "$path" 2>/dev/null; then skipped+=("$branch (locked: $path)"); continue
+    else echo "removed $path"; fi
+  fi
+  if (( dry )); then echo "would delete $branch"; else git branch -qD "$branch" && echo "deleted $branch"; fi
+  deleted=$((deleted + 1))
+done < <(git for-each-ref --format='%(refname:short)' refs/heads)
+
+echo "── $deleted merged into $default$( (( dry )) && echo ' (dry run)')"
+for s in "${skipped[@]+"${skipped[@]}"}"; do echo "kept $s"; done
