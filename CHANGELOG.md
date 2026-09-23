@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0] - 2026-09-23
+
+### Changed
+
+* `Brewfile` synced with what's actually installed (30 formulae, 10 casks added); powerlevel10k from homebrew/core
+* README rewritten for zsh and `setup.sh`
+* `reload` alias is zsh-only
+
+### Removed
+
+* Bash leftovers: `.bash_profile`, `.prompt`, `.infinite_history`, `.autocompletion`, `.dbt-completion.bash`, `.zshrc.backup`, bash screenshot
+* `bash-completion@2`, Postgres.app cask, romkatv tap
+* Unused `~/.zfunc` fpath entry and redundant `autoload compinit`
+
 ## [0.5.0] - 2026-09-22
 
 ### Added

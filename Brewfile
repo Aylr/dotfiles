@@ -1,28 +1,31 @@
 # ── Taps ─────────────────────────────────────────────────────────────────────
-tap "romkatv/powerlevel10k"
+tap "hashicorp/tap"
 tap "supabase/tap"
 
 # ── Languages & runtimes ────────────────────────────────────────────────────
 brew "python"
-brew "python-tk"                          # Tk bindings for Python
+brew "python-tk@3.14"                     # Tk bindings for Python
 brew "uv"                                 # Fast Python package manager
 brew "zsh"
 brew "bash"
-brew "bash-completion@2"
 # brew "go"
 # brew "rust"
 brew "fnm"                                # Fast Node version manager
+brew "pnpm"
 # brew "node"
 # brew "deno"
 
 # ── Shell ────────────────────────────────────────────────────────────────────
-brew "romkatv/powerlevel10k/powerlevel10k"
+brew "powerlevel10k"
+brew "direnv"                             # Per-directory env vars
 
 # ── CLI tools ────────────────────────────────────────────────────────────────
 brew "git"
 brew "git-lfs"
 brew "git-delta"                          # Beautiful git diffs
+brew "git-filter-repo"                    # Rewrite git history
 brew "gh"                                 # GitHub CLI
+brew "glab"                               # GitLab CLI
 brew "fzf"                                # Fuzzy finder (shell integration in setup.sh)
 brew "ripgrep"                            # rg — fast grep
 brew "bat"                                # cat with syntax highlighting
@@ -32,8 +35,19 @@ brew "neovim"
 brew "tmux"
 brew "wget"
 brew "watchexec"                          # File watcher
+brew "moreutils"                          # sponge, ts, vidir, etc.
 brew "csvkit"                             # CSV tools
 brew "s3cmd"                              # S3 command-line tool
+brew "scc"                                # Code counter
+brew "pandoc"                             # Document conversion
+brew "poppler"                            # pdftotext and friends
+brew "weasyprint"                         # HTML to PDF
+brew "pngquant"                           # PNG compression
+brew "terminal-notifier"                  # macOS notifications from the CLI
+brew "cliclick"                           # Mouse/keyboard automation
+brew "ical-buddy"                         # Read macOS calendar
+brew "gogcli"                             # Google Workspace CLI
+brew "herdr"                              # Agent multiplexer
 # brew "coreutils"                        # GNU core utilities
 # brew "htop"
 # brew "btop"
@@ -41,8 +55,24 @@ brew "s3cmd"                              # S3 command-line tool
 # brew "broot"                            # Interactive directory navigator
 # brew "xsv"                              # CSV tools (Rust)
 
+# ── Dev & security ───────────────────────────────────────────────────────────
+brew "ruff"                               # Python linter
+brew "actionlint"                         # GitHub Actions linter
+brew "gitleaks"                           # Secret scanning
+brew "trufflehog"                         # Secret scanning
+brew "cmake"
+brew "xcodegen"
+
 # ── Cloud & infrastructure ───────────────────────────────────────────────────
 brew "supabase/tap/supabase"
+brew "hashicorp/tap/terraform"
+brew "cloud-sql-proxy"
+brew "cloudflare-wrangler"
+brew "crane"                              # Container registry tool
+brew "doctl"                              # DigitalOcean CLI
+brew "flyctl"                             # Fly.io CLI
+brew "neonctl"                            # Neon CLI
+brew "sentry-cli"
 # brew "awscli"
 # brew "kubernetes-cli"
 # brew "helm"
@@ -50,6 +80,8 @@ brew "supabase/tap/supabase"
 # brew "colima"
 
 # ── Databases ────────────────────────────────────────────────────────────────
+brew "postgresql@15"
+brew "libpq"                              # psql and Postgres client libs
 # brew "duckdb"
 # brew "redis"
 
@@ -71,6 +103,7 @@ cask "ghostty"
 cask "iterm2"
 cask "pulsar"
 cask "jetbrains-toolbox"
+cask "opencode-desktop"
 # cask "visual-studio-code"
 # cask "cursor"
 # cask "warp"
@@ -83,23 +116,30 @@ cask "firefox"
 # Communication
 cask "slack"
 cask "microsoft-teams"
+cask "microsoft-outlook"
 cask "zoom"
 # cask "telegram"
 
 # Dev tools
-cask "postgres-app"                       # Postgres.app
 cask "tailscale-app"
+cask "gcloud-cli"
+cask "session-manager-plugin"             # AWS SSM
+# cask "postgres-app"                     # Postgres.app
 # cask "docker"
 # cask "tableplus"
 # cask "postman"
 # cask "ngrok"
 # cask "cyberduck"
-# cask "google-cloud-sdk"
-"sentry-cli"
 
+# Passwords
+cask "1password"
+cask "1password-cli"
+# cask "lastpass"
 
 # Productivity
 cask "alfred"
+cask "asana"
+cask "microsoft-excel"
 cask "deckset"                            # Markdown presentations
 # cask "obsidian"
 # cask "bear"
@@ -111,6 +151,7 @@ cask "deckset"                            # Markdown presentations
 cask "spotify"
 cask "inkscape"
 cask "bambu-studio"                       # 3D printer slicer
+cask "freecad"
 # cask "figma"
 # cask "blender"
 # cask "vlc"
@@ -141,6 +182,6 @@ cask "swish"
 # cask "qmk-toolbox"
 
 # Voice & dictation
+cask "opensuperwhisper"
 # cask "aqua-voice"
 # cask "wispr-flow"
-brew "sentry-cli"

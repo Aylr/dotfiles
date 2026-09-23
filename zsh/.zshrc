@@ -19,9 +19,7 @@ source ${DOTFILE_DIR}shell/.exports
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # ── Completions ──────────────────────────────────────────────────────────────
-autoload -Uz compinit
 zstyle ':completion:*' menu select
-fpath+=~/.zfunc
 
 # ── Tool integrations ────────────────────────────────────────────────────────
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
