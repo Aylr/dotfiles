@@ -132,14 +132,5 @@ alias treed="tree -d"
 alias tree1="tree -d -L 1"
 alias tree2="tree -d -L 2"
 
-# Shell specific reload https://stackoverflow.com/questions/9910966/how-to-get-shell-to-self-detect-using-zsh-or-bash
-if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
-   # assume Zsh
-   alias reload="source ~/.zshrc"
-elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
-   # assume Bash
-   alias reload="source ~/.bash_profile"
-else
-   # assume something else
-fi
+alias reload="source ~/.zshrc"
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.0] - 2026-09-23
+
+### Changed
+
+* `Brewfile` curated against what's installed: tools in daily use added or uncommented, unused ones and stale commented-out options dropped; powerlevel10k from homebrew/core; third-party tap formulae marked `trusted: true`
+* Homebrew `bin` is put first on `PATH` via `brew shellenv` in `.exports`
+* Python `PATH` follows the unversioned Homebrew `python` (was pinned to missing 3.13)
+* `.gitignore` ignores `.DS_Store` and the root `dotfiles/` notes folder
+* `CLAUDE.md` committed
+* README rewritten for zsh and `setup.sh`
+* `reload` alias is zsh-only
+
+### Removed
+
+* Bash leftovers: `.bash_profile`, `.prompt`, `.infinite_history`, `.autocompletion`, `.dbt-completion.bash`, `.zshrc.backup`, bash screenshot
+* Unreferenced `screenshots/neovim.png`
+* `bash-completion@2`, `fnm`, Postgres.app cask, romkatv tap
+* Unused `~/.zfunc` fpath entry and redundant `autoload compinit`
+
 ## [0.5.0] - 2026-09-22
 
 ### Added

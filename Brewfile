@@ -1,22 +1,16 @@
 # ── Taps ─────────────────────────────────────────────────────────────────────
-tap "romkatv/powerlevel10k"
 tap "supabase/tap"
 
 # ── Languages & runtimes ────────────────────────────────────────────────────
 brew "python"
-brew "python-tk"                          # Tk bindings for Python
+brew "python-tk@3.14"                     # Tk bindings for Python
 brew "uv"                                 # Fast Python package manager
 brew "zsh"
 brew "bash"
-brew "bash-completion@2"
-# brew "go"
-# brew "rust"
-brew "fnm"                                # Fast Node version manager
-# brew "node"
-# brew "deno"
+brew "rust"
 
 # ── Shell ────────────────────────────────────────────────────────────────────
-brew "romkatv/powerlevel10k/powerlevel10k"
+brew "powerlevel10k"
 
 # ── CLI tools ────────────────────────────────────────────────────────────────
 brew "git"
@@ -34,35 +28,42 @@ brew "wget"
 brew "watchexec"                          # File watcher
 brew "csvkit"                             # CSV tools
 brew "s3cmd"                              # S3 command-line tool
-# brew "coreutils"                        # GNU core utilities
-# brew "htop"
-# brew "btop"
-# brew "glow"                             # Markdown renderer for terminal
-# brew "broot"                            # Interactive directory navigator
-# brew "xsv"                              # CSV tools (Rust)
+brew "scc"                                # Code counter
+brew "pandoc"                             # Document conversion
+brew "pngquant"                           # PNG compression
+brew "terminal-notifier"                  # macOS notifications from the CLI
+brew "cliclick"                           # Mouse/keyboard automation
+brew "ical-buddy"                         # Read macOS calendar
+brew "gogcli"                             # Google Workspace CLI
+brew "herdr"                              # Agent multiplexer
+
+# ── Dev & security ───────────────────────────────────────────────────────────
+brew "ruff"                               # Python linter
+brew "actionlint"                         # GitHub Actions linter
+brew "cmake"
+brew "xcodegen"
 
 # ── Cloud & infrastructure ───────────────────────────────────────────────────
-brew "supabase/tap/supabase"
-# brew "awscli"
-# brew "kubernetes-cli"
-# brew "helm"
-# brew "pulumi"
+brew "supabase/tap/supabase", trusted: true
+brew "cloudflare-wrangler"
+brew "sentry-cli"
+brew "awscli"
 # brew "colima"
 
 # ── Databases ────────────────────────────────────────────────────────────────
-# brew "duckdb"
-# brew "redis"
+brew "postgresql@15"
+brew "libpq"                              # Postgres client libs (keg-only)
+brew "duckdb"
+brew "redis", restart_service: :changed
 
 # ── AI / ML ──────────────────────────────────────────────────────────────────
-# brew "ollama"
+brew "ollama", restart_service: :changed
 
 # ── Media ────────────────────────────────────────────────────────────────────
-# brew "ffmpeg"
-# brew "yt-dlp"
+brew "ffmpeg"
 
 # ── Dev extras ───────────────────────────────────────────────────────────────
-# brew "pipx"
-# brew "yarn"
+brew "yarn"
 
 # ── Cask apps ────────────────────────────────────────────────────────────────
 
@@ -71,39 +72,38 @@ cask "ghostty"
 cask "iterm2"
 cask "pulsar"
 cask "jetbrains-toolbox"
-# cask "visual-studio-code"
-# cask "cursor"
-# cask "warp"
 
 # Browsers
 cask "google-chrome"
 cask "firefox"
-# cask "arc"
 
 # Communication
 cask "slack"
-cask "microsoft-teams"
 cask "zoom"
-# cask "telegram"
+cask "telegram"
 
 # Dev tools
-cask "postgres-app"                       # Postgres.app
 cask "tailscale-app"
+cask "gcloud-cli"
+cask "session-manager-plugin"             # AWS SSM
+# cask "postgres-app"                     # Postgres.app
 # cask "docker"
 # cask "tableplus"
 # cask "postman"
-# cask "ngrok"
-# cask "cyberduck"
-# cask "google-cloud-sdk"
-"sentry-cli"
+cask "ngrok"
+cask "cyberduck"
 
+# Passwords
+cask "1password"
+cask "1password-cli"
 
 # Productivity
 cask "alfred"
+cask "asana"
+cask "microsoft-excel"
 cask "deckset"                            # Markdown presentations
-# cask "obsidian"
+cask "obsidian"
 # cask "bear"
-# cask "joplin"
 # cask "xmind"
 # cask "loom"
 
@@ -111,6 +111,7 @@ cask "deckset"                            # Markdown presentations
 cask "spotify"
 cask "inkscape"
 cask "bambu-studio"                       # 3D printer slicer
+cask "freecad"
 # cask "figma"
 # cask "blender"
 # cask "vlc"
@@ -127,7 +128,7 @@ cask "bambu-studio"                       # 3D printer slicer
 cask "flux-app"
 cask "appcleaner"
 # cask "karabiner-elements"
-# cask "caffeine"
+cask "caffeine"
 cask "swish"
 # cask "sound-control"
 # cask "1blocker"
@@ -141,6 +142,6 @@ cask "swish"
 # cask "qmk-toolbox"
 
 # Voice & dictation
+cask "opensuperwhisper"
 # cask "aqua-voice"
 # cask "wispr-flow"
-brew "sentry-cli"
