@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* `setup.sh` Stage 8 installs Claude Code and Hermes Agent via their official installers (skipped when already present; Hermes setup wizard deferred to `hermes setup`)
+
 ## [0.7.0] - 2026-09-23
 
 ### Changed
