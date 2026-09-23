@@ -41,6 +41,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  5  fzf             (shell integration)"
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
     echo "  7  GitHub CLI      (gh auth login)"
+    echo "  8  Agent CLIs      (Claude Code, Hermes Agent)"
     exit 0
 fi
 
@@ -226,6 +227,26 @@ else
     warn "Not interactive — run gh auth login yourself."
 fi
 
+# ── Stage 8: Agent CLIs ─────────────────────────────────────────────────────
+
+header "Stage 8: Agent CLIs"
+
+if [[ -x "$HOME/.local/bin/claude" ]]; then
+    success "Claude Code already installed (self-updates)."
+elif curl -fsSL https://claude.ai/install.sh | bash; then
+    success "Claude Code installed."
+else
+    warn "Claude Code install failed — retry: curl -fsSL https://claude.ai/install.sh | bash"
+fi
+
+if [[ -x "$HOME/.local/bin/hermes" ]]; then
+    success "Hermes Agent already installed (update with: hermes update)."
+elif curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --skip-setup; then
+    success "Hermes Agent installed."
+else
+    warn "Hermes Agent install failed — retry: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
+fi
+
 # ── Done: Manual checklist ───────────────────────────────────────────────────
 
 echo ""
@@ -240,5 +261,8 @@ echo ""
 echo -e "  ${BOLD}2. Secrets file${NC}"
 echo    "     Create shell/.secrets with your API keys and tokens"
 echo ""
-echo -e "  ${BOLD}3. Open a new terminal.${NC}"
+echo -e "  ${BOLD}3. Hermes Agent${NC}"
+echo    "     hermes setup (or copy ~/.hermes/.env from the old Mac)"
+echo ""
+echo -e "  ${BOLD}4. Open a new terminal.${NC}"
 echo ""

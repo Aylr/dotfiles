@@ -11,7 +11,7 @@ mkdir -p ~/repos && git clone git@github.com:Aylr/dotfiles.git ~/repos/dotfiles
 cd ~/repos/dotfiles && ./setup.sh
 ```
 
-The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell, symlinks the configs into `~/` (backing up existing files; a symlink pointing elsewhere is left alone), and runs `gh auth login` if needed. A package that fails to install doesn't stop the run.
+The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell, symlinks the configs into `~/` (backing up existing files; a symlink pointing elsewhere is left alone), runs `gh auth login` if needed, and installs [Claude Code](https://claude.ai/install.sh) and [Hermes Agent](https://hermes-agent.nousresearch.com/docs/getting-started/installation) with their official installers. A package that fails to install doesn't stop the run.
 
 Expect prompts for your password (`sudo`, `chsh`) and the GitHub login.
 
@@ -19,7 +19,8 @@ Afterwards, by hand:
 
 1. Fill in `~/.gitconfig-professional` and `~/.gitconfig-personal` (created from the `.example` templates).
 2. Copy `shell/.secrets` over from the old Mac.
-3. Open a new terminal.
+3. `hermes setup`, or copy `~/.hermes/.env` from the old Mac.
+4. Open a new terminal.
 
 ## Layout
 
