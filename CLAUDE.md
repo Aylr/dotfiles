@@ -37,4 +37,4 @@ zsh/
 - When adding new tools: add the brew formula/cask to `Brewfile`, any aliases to `shell/.alias`, any env vars to `shell/.exports`
 - When adding shell integrations: add to the "Tool integrations" section of `zsh/.zshrc`
 - Keep `setup.sh` idempotent -- guard new steps with existence checks
-- Preserve the section-header comment style (`# -- Section --`) used throughout
+- Preserve the section-header comment style (`# ── Section ──`) used throughout

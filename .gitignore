@@ -1,4 +1,4 @@
 shell/.secrets
 .idea/
 .DS_Store
-dotfiles/
+/dotfiles/

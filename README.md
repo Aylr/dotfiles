@@ -11,7 +11,7 @@ mkdir -p ~/repos && git clone git@github.com:Aylr/dotfiles.git ~/repos/dotfiles
 cd ~/repos/dotfiles && ./setup.sh
 ```
 
-The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Xcode CLT, Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell and symlinks the configs into `~/`, backing up anything already there.
+The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Xcode CLT, Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell and symlinks the configs into `~/`, backing up existing files (an existing symlink pointing elsewhere is left alone).
 
 Then, by hand:
 
@@ -30,7 +30,7 @@ Then, by hand:
 | `shell/.alias` | Aliases and functions |
 | `shell/.exports` | Non-secret environment variables |
 | `shell/.secrets` | Secret environment variables (gitignored) |
-| `shell/.gitconfig` | Git config, symlinked to `~/`; picks identity by repo path |
+| `shell/.gitconfig` | Git config, symlinked to `~/`. Includes per-path identity files, but its own `[user] email` currently overrides them. |
 | `bin/` | Scripts on `PATH`, e.g. `git prune-merged` |
 | `journal.sh` | Journaling CLI, aliased as `jj` |
 

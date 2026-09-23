@@ -9,7 +9,7 @@ brew "uv"                                 # Fast Python package manager
 brew "zsh"
 brew "bash"
 # brew "go"
-# brew "rust"
+brew "rust"
 brew "fnm"                                # Fast Node version manager
 brew "pnpm"
 # brew "node"
@@ -35,6 +35,7 @@ brew "neovim"
 brew "tmux"
 brew "wget"
 brew "watchexec"                          # File watcher
+brew "shellcheck"                         # Shell script linter
 brew "moreutils"                          # sponge, ts, vidir, etc.
 brew "csvkit"                             # CSV tools
 brew "s3cmd"                              # S3 command-line tool
@@ -64,8 +65,8 @@ brew "cmake"
 brew "xcodegen"
 
 # ── Cloud & infrastructure ───────────────────────────────────────────────────
-brew "supabase/tap/supabase"
-brew "hashicorp/tap/terraform"
+brew "supabase/tap/supabase", trusted: true
+brew "hashicorp/tap/terraform", trusted: true
 brew "cloud-sql-proxy"
 brew "cloudflare-wrangler"
 brew "crane"                              # Container registry tool
@@ -73,7 +74,7 @@ brew "doctl"                              # DigitalOcean CLI
 brew "flyctl"                             # Fly.io CLI
 brew "neonctl"                            # Neon CLI
 brew "sentry-cli"
-# brew "awscli"
+brew "awscli"
 # brew "kubernetes-cli"
 # brew "helm"
 # brew "pulumi"
@@ -81,20 +82,20 @@ brew "sentry-cli"
 
 # ── Databases ────────────────────────────────────────────────────────────────
 brew "postgresql@15"
-brew "libpq"                              # psql and Postgres client libs
-# brew "duckdb"
-# brew "redis"
+brew "libpq"                              # Postgres client libs (keg-only)
+brew "duckdb"
+brew "redis", restart_service: :changed
 
 # ── AI / ML ──────────────────────────────────────────────────────────────────
-# brew "ollama"
+brew "ollama", restart_service: :changed
 
 # ── Media ────────────────────────────────────────────────────────────────────
-# brew "ffmpeg"
+brew "ffmpeg"
 # brew "yt-dlp"
 
 # ── Dev extras ───────────────────────────────────────────────────────────────
 # brew "pipx"
-# brew "yarn"
+brew "yarn"
 
 # ── Cask apps ────────────────────────────────────────────────────────────────
 
@@ -118,7 +119,7 @@ cask "slack"
 cask "microsoft-teams"
 cask "microsoft-outlook"
 cask "zoom"
-# cask "telegram"
+cask "telegram"
 
 # Dev tools
 cask "tailscale-app"
@@ -128,8 +129,8 @@ cask "session-manager-plugin"             # AWS SSM
 # cask "docker"
 # cask "tableplus"
 # cask "postman"
-# cask "ngrok"
-# cask "cyberduck"
+cask "ngrok"
+cask "cyberduck"
 
 # Passwords
 cask "1password"
@@ -141,7 +142,7 @@ cask "alfred"
 cask "asana"
 cask "microsoft-excel"
 cask "deckset"                            # Markdown presentations
-# cask "obsidian"
+cask "obsidian"
 # cask "bear"
 # cask "joplin"
 # cask "xmind"
@@ -168,7 +169,7 @@ cask "freecad"
 cask "flux-app"
 cask "appcleaner"
 # cask "karabiner-elements"
-# cask "caffeine"
+cask "caffeine"
 cask "swish"
 # cask "sound-control"
 # cask "1blocker"

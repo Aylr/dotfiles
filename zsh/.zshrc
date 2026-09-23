@@ -36,6 +36,7 @@ fi
 [ -f "$HOME/.config/broot/launcher/bash/br" ] && source "$HOME/.config/broot/launcher/bash/br"
 
 command -v fnm &>/dev/null && eval "$(fnm env)"
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
