@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0] - 2026-09-23
+
+### Changed
+
+* `setup.sh` runs start to finish in one go: a failed package no longer aborts the run, and `gh auth login` runs as Stage 7
+* `setup.sh` stops early if the repo isn't at `~/repos/dotfiles`
+* Dropped `p10k configure` from the post-install checklist (`.p10k.zsh` is symlinked)
+
 ## [0.6.0] - 2026-09-23
 
 ### Changed

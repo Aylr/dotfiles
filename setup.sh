@@ -40,6 +40,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  4  Symlinks        (shell configs, gitconfig)"
     echo "  5  fzf             (shell integration)"
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
+    echo "  7  GitHub CLI      (gh auth login)"
     exit 0
 fi
 
@@ -49,6 +50,8 @@ header "Stage 0: Prerequisites"
 
 [[ "$(uname)" == "Darwin" ]] || error "This script is macOS only."
 success "macOS detected."
+
+[[ "$DOTFILES_DIR" == "$HOME/repos/dotfiles" ]] || error "Clone this repo to ~/repos/dotfiles (found at $DOTFILES_DIR); .zshrc sources it from there."
 
 if ! xcode-select -p &>/dev/null; then
     warn "Xcode Command Line Tools not found — requesting install..."
@@ -83,8 +86,11 @@ fi
 header "Stage 2: Packages (Brewfile)"
 
 info "Running brew bundle..."
-brew bundle --file="$DOTFILES_DIR/Brewfile"
-success "Packages installed."
+if brew bundle --file="$DOTFILES_DIR/Brewfile"; then
+    success "Packages installed."
+else
+    warn "Some packages failed — continuing. Retry later with: brew bundle --file=$DOTFILES_DIR/Brewfile"
+fi
 
 # ── Stage 3: Shell ───────────────────────────────────────────────────────────
 
@@ -208,6 +214,18 @@ else
     warn "No nvim/ directory found in dotfiles — skipping Neovim setup."
 fi
 
+# ── Stage 7: GitHub CLI ─────────────────────────────────────────────────────
+
+header "Stage 7: GitHub CLI"
+
+if gh auth status &>/dev/null; then
+    success "GitHub CLI already authenticated."
+elif [[ -t 0 ]]; then
+    gh auth login
+else
+    warn "Not interactive — run gh auth login yourself."
+fi
+
 # ── Done: Manual checklist ───────────────────────────────────────────────────
 
 echo ""
@@ -222,11 +240,5 @@ echo ""
 echo -e "  ${BOLD}2. Secrets file${NC}"
 echo    "     Create shell/.secrets with your API keys and tokens"
 echo ""
-echo -e "  ${BOLD}3. GitHub CLI auth${NC}"
-echo    "     gh auth login"
-echo ""
-echo -e "  ${BOLD}4. Configure the p10k prompt${NC}"
-echo    "     p10k configure"
-echo ""
-echo -e "  ${BOLD}5. Restart your terminal.${NC}"
+echo -e "  ${BOLD}3. Open a new terminal.${NC}"
 echo ""
