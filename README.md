@@ -11,14 +11,15 @@ mkdir -p ~/repos && git clone git@github.com:Aylr/dotfiles.git ~/repos/dotfiles
 cd ~/repos/dotfiles && ./setup.sh
 ```
 
-The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Xcode CLT, Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell and symlinks the configs into `~/`, backing up existing files (an existing symlink pointing elsewhere is left alone).
+The repo must live at `~/repos/dotfiles`. `setup.sh` is safe to re-run. It installs Homebrew, everything in the `Brewfile`, oh-my-zsh, and Powerlevel10k fonts. It also sets brew's zsh as the login shell, symlinks the configs into `~/` (backing up existing files; a symlink pointing elsewhere is left alone), and runs `gh auth login` if needed. A package that fails to install doesn't stop the run.
 
-Then, by hand:
+Expect prompts for your password (`sudo`, `chsh`) and the GitHub login.
+
+Afterwards, by hand:
 
 1. Fill in `~/.gitconfig-professional` and `~/.gitconfig-personal` (created from the `.example` templates).
 2. Copy `shell/.secrets` over from the old Mac.
-3. `gh auth login`
-4. `p10k configure` if the prompt looks off.
+3. Open a new terminal.
 
 ## Layout
 
