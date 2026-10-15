@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Prune merged branches and fast-forward the cortex repos, in parallel, with one fetch each.
+
+sync() {
+  local repo=$1 name=${1##*/}
+  {
+    cd "$repo" || exit 1
+    git-prune-merged
+    git merge -q --ff-only @{u} 2>&1 && echo "up to date: $(git log -1 --format='%h %s')"
+  } 2>&1 | sed "s/^/[$name] /"
+}
+
+sync ~/repos/cortex/frontend &
+sync ~/repos/cortex/backend &
+wait

@@ -11,7 +11,7 @@ Brewfile              # Homebrew packages, casks, and taps
 setup.sh              # Full bootstrap script (safe to re-run)
 journal.sh            # CLI journaling tool (aliased as jj)
 neovim_install.sh     # Neovim setup
-bin/                  # Scripts on PATH (git-prune-merged: delete merged branches + worktrees)
+bin/                  # Scripts on PATH (git-prune-merged: delete merged branches + worktrees; cortex-up: sync cortex repos)
 shell/
   .alias              # Shell aliases and functions
   .exports            # Non-secret environment variables
