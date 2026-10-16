@@ -1,0 +1,9 @@
+{"type":"user","sessionId":"multi-0001","cwd":"/r/app","timestamp":"2026-03-01T10:00:00.000Z","message":{"content":"hi"}}
+{"type":"ai-title","aiTitle":"First AI","sessionId":"multi-0001"}
+{"type":"assistant","note":"no fields on this line"}
+{"type":"user","sessionId":"multi-0001","cwd":"/r/app/.worktrees/a","timestamp":"2026-03-01T11:00:00.500Z"}
+{"type":"custom-title","customTitle":"Mine","sessionId":"multi-0001"}
+{"type":"user","sessionId":"multi-0001","cwd":"/r/app/.worktrees/b","timestamp":"2026-03-01T12:00:00.000Z"}
+{"type":"user","sessionId":"multi-0001","cwd":"/r/app/.worktrees/a","timestamp":"2026-03-01T11:30:00.000Z"}
+{"type":"ai-title","aiTitle":"Second AI","sessionId":"multi-0001"}
+{"type":"custom-title","customTitle":"Final \"quoted\" café \\ end","sessionId":"multi-0001"}

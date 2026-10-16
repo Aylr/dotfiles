@@ -8,6 +8,7 @@ brew "uv"                                 # Fast Python package manager
 brew "zsh"
 brew "bash"
 brew "rust"
+brew "go"                                 # Builds tools/ (git-wt)
 
 # ── Shell ────────────────────────────────────────────────────────────────────
 brew "powerlevel10k"
