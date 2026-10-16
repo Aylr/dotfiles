@@ -65,8 +65,10 @@ func (t *transcript) title() string {
 	return t.id
 }
 
+var errSessionsUnreadable = errors.New("Claude session data unreadable")
+
 // LoadSessions returns Claude Code sessions per worktree path, newest first.
-func LoadSessions(claudeDir string, ws []Worktree) map[string][]Session {
+func LoadSessions(claudeDir string, ws []Worktree) (map[string][]Session, error) {
 	out := map[string][]Session{}
 	attr := newAttributor(ws)
 	files := transcriptFiles(filepath.Join(claudeDir, "projects"), ws)
@@ -95,7 +97,11 @@ func LoadSessions(claudeDir string, ws []Worktree) map[string][]Session {
 	}()
 
 	byID := map[string]*transcript{}
+	readable := 0
 	for t := range results {
+		if len(t.lastByCwd) > 0 {
+			readable++
+		}
 		if prev, ok := byID[t.id]; ok {
 			prev.merge(t)
 		} else {
@@ -103,7 +109,7 @@ func LoadSessions(claudeDir string, ws []Worktree) map[string][]Session {
 		}
 	}
 
-	live := liveSessions(claudeDir)
+	live, liveOK := liveSessions(claudeDir)
 	liveAt := map[string]string{}
 	for id, startCwd := range live {
 		cwd := startCwd
@@ -139,7 +145,10 @@ func LoadSessions(claudeDir string, ws []Worktree) map[string][]Session {
 	for _, s := range out {
 		sort.SliceStable(s, func(i, j int) bool { return s[i].Last.After(s[j].Last) })
 	}
-	return out
+	if (len(files) > 0 && readable == 0) || !liveOK {
+		return out, errSessionsUnreadable
+	}
+	return out, nil
 }
 
 func shortID(id string) string {
@@ -287,9 +296,10 @@ func stringField(line, key []byte) (string, bool) {
 	return "", false
 }
 
-func liveSessions(claudeDir string) map[string]string {
+func liveSessions(claudeDir string) (map[string]string, bool) {
 	live := map[string]string{}
 	files, _ := filepath.Glob(filepath.Join(claudeDir, "sessions", "*.json"))
+	parsed := 0
 	for _, f := range files {
 		data, err := os.ReadFile(f)
 		if err != nil {
@@ -300,10 +310,13 @@ func liveSessions(claudeDir string) map[string]string {
 			SessionID string `json:"sessionId"`
 			Cwd       string `json:"cwd"`
 		}
-		if json.Unmarshal(data, &s) != nil || s.SessionID == "" || s.Pid <= 0 || !pidAlive(s.Pid) {
+		if json.Unmarshal(data, &s) != nil || s.SessionID == "" || s.Pid <= 0 {
 			continue
 		}
-		live[s.SessionID] = s.Cwd
+		parsed++
+		if pidAlive(s.Pid) {
+			live[s.SessionID] = s.Cwd
+		}
 	}
-	return live
+	return live, len(files) == 0 || parsed > 0
 }

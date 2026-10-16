@@ -38,6 +38,7 @@ func testPRs() []PR {
 type stepLog struct {
 	ran     []string
 	deleted map[string]bool
+	procs   map[string][]Proc
 }
 
 func stubSources(log *stepLog) sources {
@@ -54,10 +55,11 @@ func stubSources(log *stepLog) sources {
 		fetch:     func(Repo) error { return nil },
 		collect:   func(Repo, []Worktree) {},
 		prs:       func(string, []string) ([]PR, error) { return testPRs(), nil },
-		sessions:  func([]Worktree) map[string][]Session { return nil },
+		sessions:  func([]Worktree) (map[string][]Session, error) { return nil, nil },
 		size:      func(string) (int64, error) { return 1024, nil },
 		detail:    func(Repo, Worktree) (Detail, error) { return Detail{MergeBase: "base"}, nil },
 		mergeBase: func(Repo, Worktree) (string, error) { return "base", nil },
+		procs:     func(ws []Worktree) map[string][]Proc { return log.procs },
 		steps: func(w Worktree) []Step {
 			var steps []Step
 			for _, label := range []string{"worktree", "branch"} {
@@ -637,6 +639,62 @@ func TestDiffOnVanishedWorktree(t *testing.T) {
 	}
 	m = send(m, msgs[0])
 	if m.status != "✕ diff: worktree directory is gone" {
+		t.Fatalf("status = %q", m.status)
+	}
+}
+
+func TestUnreadableSessionsWarnOnceAndStayInHeader(t *testing.T) {
+	m, _ := newTestModel(t)
+	m = send(m, sessionsLoadedMsg{gen: m.gen, err: errSessionsUnreadable})
+	if !strings.Contains(m.status, "won't block deletion") {
+		t.Fatalf("status = %q", m.status)
+	}
+	m = send(m, press("j")...)
+	m = send(m, sessionsLoadedMsg{gen: m.gen, err: errSessionsUnreadable})
+	if m.status != "" {
+		t.Fatalf("warning repeated: %q", m.status)
+	}
+	if out := ansi.Strip(m.View().Content); !strings.Contains(out, "sessions unreadable") || !strings.Contains(out, "can't read Claude session data") {
+		t.Fatalf("header/detail missing warning:\n%s", out)
+	}
+	m = send(m, sessionsLoadedMsg{gen: m.gen})
+	if m.sessionsBlind {
+		t.Fatal("warning should clear once sessions read")
+	}
+}
+
+func TestSquashMergedShowsInMain(t *testing.T) {
+	m, _ := newTestModel(t)
+	for i := range m.all {
+		if m.all[i].Name == "scratch" {
+			m.all[i].SquashMerged = true
+		}
+	}
+	m = send(m, prsLoadedMsg{gen: m.gen, err: errors.New("offline")})
+	if out := ansi.Strip(m.View().Content); !strings.Contains(out, "in main") {
+		t.Fatalf("squash-merged row should say in main even when gh fails:\n%s", out)
+	}
+}
+
+func TestDeleteRescansProcessesAtConfirm(t *testing.T) {
+	m, log := newTestModel(t)
+	m = loadAllAsync(m)
+	m = send(m, press("G", "k", "space")...)
+	merged := rowNamed(m, "merged-feature")
+	if !merged.Marked {
+		t.Fatal("merged-feature should be pre-marked")
+	}
+	log.procs = map[string][]Proc{merged.Path: {{PID: 9, Command: "zsh"}}}
+	m = send(m, press("x")...)
+	if rowNamed(m, "merged-feature").Marked {
+		t.Fatal("row with a shell open in it stayed marked")
+	}
+	for _, it := range m.items {
+		if it.wt.Name == "merged-feature" {
+			t.Fatal("row with a shell open in it reached the confirm list")
+		}
+	}
+	if !strings.Contains(m.status, "merged-feature in use by zsh") {
 		t.Fatalf("status = %q", m.status)
 	}
 }

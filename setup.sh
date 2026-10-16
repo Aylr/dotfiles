@@ -42,7 +42,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
     echo "  7  GitHub CLI      (gh auth login)"
     echo "  8  Agent CLIs      (Claude Code, Hermes Agent)"
-    echo "  9  Tools           (build git-wt into bin/)"
+    echo "  9  Tools           (build git-wt)"
     exit 0
 fi
 
@@ -252,12 +252,12 @@ fi
 
 header "Stage 9: Tools"
 
-if command -v go &>/dev/null; then
-    (cd "$DOTFILES_DIR/tools/git-wt" && go build -o "$DOTFILES_DIR/bin/git-wt" .) \
-        && success "git-wt built." \
-        || warn "git-wt build failed — retry: cd tools/git-wt && go build -o ../../bin/git-wt ."
-else
+if ! command -v go &>/dev/null; then
     warn "go not found — skipping git-wt. Run brew bundle first."
+elif "$DOTFILES_DIR/bin/git-wt" -h &>/dev/null; then
+    success "git-wt built (rebuilds itself when tools/git-wt changes)."
+else
+    warn "git-wt build failed — retry: git wt -h"
 fi
 
 # ── Done: Manual checklist ───────────────────────────────────────────────────

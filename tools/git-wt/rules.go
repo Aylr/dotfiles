@@ -29,6 +29,9 @@ func BlockedReasons(w Worktree, defaultBranch string) []string {
 			break
 		}
 	}
+	if len(w.Procs) > 0 {
+		reasons = append(reasons, "in use by "+procNames(w.Procs))
+	}
 	if w.Locked {
 		reasons = append(reasons, "locked")
 	}
@@ -42,7 +45,7 @@ func PreMark(w Worktree, defaultBranch string) bool {
 	if len(w.DirtyFiles) > 0 || len(w.Untracked) > 0 || w.Lost > 0 {
 		return false
 	}
-	if w.PR != nil && (w.PR.State == "MERGED" || w.PR.State == "CLOSED") {
+	if w.SquashMerged || w.PR != nil && (w.PR.State == "MERGED" || w.PR.State == "CLOSED") {
 		return true
 	}
 	return w.Detached && !w.Orphaned

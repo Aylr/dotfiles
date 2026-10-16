@@ -58,7 +58,10 @@ func loadAll(r Repo) ([]Worktree, error) {
 		}
 	}
 	Collect(r, ws)
-	sessions := LoadSessions(claudeDir(), ws)
+	sessions, sessErr := LoadSessions(claudeDir(), ws)
+	if sessErr != nil {
+		fmt.Fprintln(os.Stderr, "warning:", sessErr, "· live Claude sessions won't block deletion")
+	}
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 4)
 	for i := range ws {

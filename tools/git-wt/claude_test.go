@@ -51,7 +51,7 @@ func mustTime(t *testing.T, s string) time.Time {
 
 func TestLoadSessionsAttribution(t *testing.T) {
 	stubPids(t)
-	got := LoadSessions("testdata/claude", claudeWorktrees)
+	got := mustSessions(t, "testdata/claude", claudeWorktrees)
 
 	multi := map[string]string{
 		"/r/app":              "2026-03-01T10:00:00Z",
@@ -77,7 +77,7 @@ func TestLoadSessionsAttribution(t *testing.T) {
 
 func TestLoadSessionsTitles(t *testing.T) {
 	stubPids(t)
-	got := LoadSessions("testdata/claude", claudeWorktrees)
+	got := mustSessions(t, "testdata/claude", claudeWorktrees)
 
 	c := byID(got["/r/app/.claude/worktrees/c"])
 	if s := c["aionly-0001"]; s.Title != "Only AI" {
@@ -101,7 +101,7 @@ func TestLoadSessionsTitles(t *testing.T) {
 
 func TestLoadSessionsFileSelection(t *testing.T) {
 	stubPids(t)
-	got := LoadSessions("testdata/claude", claudeWorktrees)
+	got := mustSessions(t, "testdata/claude", claudeWorktrees)
 
 	if _, ok := byID(got["/r/app/.worktrees/b"])["perwt-0001"]; !ok {
 		t.Error("per-worktree project dir missed")
@@ -120,7 +120,7 @@ func TestLoadSessionsFileSelection(t *testing.T) {
 			t.Errorf("sibling repo session attributed to %s", path)
 		}
 	}
-	rootOnly := LoadSessions("testdata/claude", claudeWorktrees[:5])
+	rootOnly := mustSessions(t, "testdata/claude", claudeWorktrees[:5])
 	for path, ss := range rootOnly {
 		if _, ok := byID(ss)["other-0001"]; ok {
 			t.Errorf("sibling repo session attributed to %s", path)
@@ -130,7 +130,7 @@ func TestLoadSessionsFileSelection(t *testing.T) {
 
 func TestLoadSessionsSortedNewestFirst(t *testing.T) {
 	stubPids(t)
-	got := LoadSessions("testdata/claude", claudeWorktrees)
+	got := mustSessions(t, "testdata/claude", claudeWorktrees)
 	for path, ss := range got {
 		for i := 1; i < len(ss); i++ {
 			if ss[i].Last.After(ss[i-1].Last) {
@@ -146,7 +146,7 @@ func TestLoadSessionsSortedNewestFirst(t *testing.T) {
 
 func TestLoadSessionsLive(t *testing.T) {
 	stubPids(t, 111, 333)
-	got := LoadSessions("testdata/claude", claudeWorktrees)
+	got := mustSessions(t, "testdata/claude", claudeWorktrees)
 
 	if s := byID(got["/r/app/.worktrees/b"])["live-0001"]; !s.Live {
 		t.Errorf("live-0001 not live in b: %+v", got["/r/app/.worktrees/b"])
@@ -164,7 +164,7 @@ func TestLoadSessionsLive(t *testing.T) {
 
 func TestLoadSessionsMissingDirs(t *testing.T) {
 	stubPids(t)
-	if got := LoadSessions(filepath.Join(t.TempDir(), "nope"), claudeWorktrees); len(got) != 0 {
+	if got := mustSessions(t, filepath.Join(t.TempDir(), "nope"), claudeWorktrees); len(got) != 0 {
 		t.Errorf("got %v", got)
 	}
 }
@@ -190,7 +190,7 @@ func TestTranscriptHugeLine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got := LoadSessions(dir, claudeWorktrees)
+	got := mustSessions(t, dir, claudeWorktrees)
 	for path, want := range map[string]string{
 		"/r/app/.worktrees/a": "2026-04-01T00:00:00Z",
 		"/r/app/.worktrees/b": "2026-04-02T00:00:00Z",
@@ -203,5 +203,51 @@ func TestTranscriptHugeLine(t *testing.T) {
 		if !s.Last.Equal(mustTime(t, want)) || s.Title != "after blob" {
 			t.Errorf("%s = %+v", path, s)
 		}
+	}
+}
+
+func mustSessions(t *testing.T, dir string, ws []Worktree) map[string][]Session {
+	t.Helper()
+	got, err := LoadSessions(dir, ws)
+	if err != nil {
+		t.Fatalf("LoadSessions: %v", err)
+	}
+	return got
+}
+
+func TestLoadSessionsReportsUnreadableFormats(t *testing.T) {
+	root := "/r/app"
+	ws := []Worktree{{Path: root, Main: true}}
+	write := func(t *testing.T, dir, rel, content string) {
+		t.Helper()
+		path := filepath.Join(dir, rel)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tests := []struct {
+		name    string
+		files   map[string]string
+		wantErr bool
+	}{
+		{"no claude dir", nil, false},
+		{"readable transcript", map[string]string{"projects/-r-app/s.jsonl": `{"cwd":"/r/app","timestamp":"2026-10-01T00:00:00.000Z","sessionId":"s"}`}, false},
+		{"transcripts without cwd", map[string]string{"projects/-r-app/s.jsonl": `{"workingDir":"/r/app","ts":1}`}, true},
+		{"session files without pid", map[string]string{"sessions/1.json": `{"process":1,"id":"x"}`}, true},
+		{"dead session file", map[string]string{"sessions/1.json": `{"pid":999999,"sessionId":"x","cwd":"/r/app"}`}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			for rel, content := range tt.files {
+				write(t, dir, rel, content)
+			}
+			if _, err := LoadSessions(dir, ws); (err != nil) != tt.wantErr {
+				t.Fatalf("err = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }

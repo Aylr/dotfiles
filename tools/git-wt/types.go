@@ -34,11 +34,18 @@ type Worktree struct {
 	Lost                            int // commits that exist only here
 	Ahead, Behind                   int
 	Orphaned                        bool // detached HEAD unreachable from any branch
+	SquashMerged                    bool // no PR, but the branch's full diff already landed on base
 	LastActivity                    time.Time
 	PR                              *PR
 	Sessions                        []Session
+	Procs                           []Proc
 	SizeKB                          int64 // -1 while pending
 	Marked                          bool
+}
+
+type Proc struct {
+	PID     int
+	Command string
 }
 
 type Commit struct {
