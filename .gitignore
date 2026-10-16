@@ -2,5 +2,4 @@ shell/.secrets
 .idea/
 .DS_Store
 /dotfiles/
-/bin/git-wt
 /tools/git-wt/git-wt

@@ -138,6 +138,10 @@ func worktreeName(root string, w Worktree) string {
 func Collect(r Repo, ws []Worktree) {
 	_, err := runGit(r.Root, "rev-parse", "-q", "--verify", r.Base)
 	baseOK := err == nil
+	procs := LoadProcs(ws)
+	for i := range ws {
+		ws[i].Procs = procs[ws[i].Path]
+	}
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, collectWorkers)
 	for i := range ws {
@@ -155,7 +159,7 @@ func Collect(r Repo, ws []Worktree) {
 func collectOne(r Repo, w *Worktree, baseOK bool) {
 	p, head := w.Path, w.Head
 	w.DirtyFiles, w.Untracked, w.Upstream = nil, nil, ""
-	w.Ahead, w.Behind, w.Lost, w.Orphaned = 0, 0, 0, false
+	w.Ahead, w.Behind, w.Lost, w.Orphaned, w.SquashMerged = 0, 0, 0, false, false
 
 	if out, err := run(p, "git", "status", "--porcelain=v1", "-z"); err == nil {
 		w.DirtyFiles, w.Untracked = parseStatus(out)
@@ -186,6 +190,25 @@ func collectOne(r Repo, w *Worktree, baseOK bool) {
 	}
 
 	w.Lost = lostCommits(p, *w)
+	if w.Lost > 0 && w.PR == nil && !w.Detached && baseOK && squashMerged(p, r.Base, head) {
+		w.SquashMerged, w.Lost = true, 0
+	}
+}
+
+func squashMerged(p, base, head string) bool {
+	mb, err := runGit(p, "merge-base", base, head)
+	if err != nil {
+		return false
+	}
+	if _, err := runGit(p, "diff", "--quiet", mb, head); err == nil {
+		return false
+	}
+	squash, err := runGit(p, "commit-tree", head+"^{tree}", "-p", mb, "-m", "_")
+	if err != nil {
+		return false
+	}
+	out, err := runGit(p, "cherry", base, squash)
+	return err == nil && strings.HasPrefix(out, "-")
 }
 
 func lostCommits(p string, w Worktree) int {

@@ -37,11 +37,12 @@ type sources struct {
 	fetch     func(Repo) error
 	collect   func(Repo, []Worktree)
 	prs       func(root string, heads []string) ([]PR, error)
-	sessions  func([]Worktree) map[string][]Session
+	sessions  func([]Worktree) (map[string][]Session, error)
 	size      func(path string) (int64, error)
 	detail    func(Repo, Worktree) (Detail, error)
 	mergeBase func(Repo, Worktree) (string, error)
 	steps     func(Worktree) []Step
+	procs     func([]Worktree) map[string][]Proc
 }
 
 func realSources() sources {
@@ -50,11 +51,12 @@ func realSources() sources {
 		fetch:     Fetch,
 		collect:   Collect,
 		prs:       func(root string, heads []string) ([]PR, error) { return prSource(root, heads) },
-		sessions:  func(ws []Worktree) map[string][]Session { return LoadSessions(claudeDir(), ws) },
+		sessions:  func(ws []Worktree) (map[string][]Session, error) { return LoadSessions(claudeDir(), ws) },
 		size:      DirSizeKB,
 		detail:    LoadDetail,
 		mergeBase: MergeBase,
 		steps:     DeleteSteps,
+		procs:     LoadProcs,
 	}
 }
 
@@ -76,6 +78,7 @@ type (
 	sessionsLoadedMsg struct {
 		gen      int
 		sessions map[string][]Session
+		err      error
 	}
 	sizeMsg struct {
 		gen  int
@@ -166,6 +169,7 @@ type model struct {
 	ghFailed            bool
 	ghErr               string
 	ghWarned            bool
+	sessionsBlind       bool
 	sizeQueue           []string
 	sizesInFlight       int
 	sizesDone           int
@@ -273,7 +277,10 @@ func (m *model) startLoads() tea.Cmd {
 			prs, err := src.prs(r.Root, heads)
 			return prsLoadedMsg{gen, prs, err}
 		},
-		func() tea.Msg { return sessionsLoadedMsg{gen, src.sessions(ws)} },
+		func() tea.Msg {
+			sessions, err := src.sessions(ws)
+			return sessionsLoadedMsg{gen, sessions, err}
+		},
 		m.nextSizeCmds(),
 		m.spinner.Tick,
 	)
@@ -366,6 +373,10 @@ func (m *model) update(msg tea.Msg) tea.Cmd {
 		for i := range m.all {
 			m.all[i].Sessions = msg.sessions[m.all[i].Path]
 		}
+		if msg.err != nil && !m.sessionsBlind {
+			m.status = "⚠ " + msg.err.Error() + " · live Claude sessions won't block deletion"
+		}
+		m.sessionsBlind = msg.err != nil
 		m.sessionsLoaded = true
 		delete(m.pending, "sessions")
 		m.maybePremark()
@@ -628,21 +639,30 @@ func (m *model) startConfirm() {
 		m.status = "Still checking " + strings.Join(waiting, " · ") + " · press x again in a moment"
 		return
 	}
+	procs := m.src.procs(m.all)
 	var items []deleteItem
+	var dropped []string
 	for i := range m.all {
 		w := &m.all[i]
+		w.Procs = procs[w.Path]
 		if !w.Marked {
 			continue
 		}
-		if len(BlockedReasons(*w, m.repo.DefaultBranch)) > 0 {
+		if reasons := BlockedReasons(*w, m.repo.DefaultBranch); len(reasons) > 0 {
 			w.Marked = false
+			dropped = append(dropped, w.Name+" "+reasons[0])
 			continue
 		}
 		steps := m.src.steps(*w)
 		items = append(items, deleteItem{wt: *w, steps: steps, states: make([]stepState, len(steps))})
 	}
+	if len(dropped) > 0 {
+		m.status = "✕ unmarked " + strings.Join(dropped, " · ")
+	}
 	if len(items) == 0 {
-		m.status = "Nothing marked · space marks a row"
+		if len(dropped) == 0 {
+			m.status = "Nothing marked · space marks a row"
+		}
 		return
 	}
 	m.items = items

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Run git wt, rebuilding it from tools/git-wt whenever its sources change.
+set -euo pipefail
+
+src="$(cd "$(dirname "${BASH_SOURCE[0]}")/../tools/git-wt" && pwd)"
+bin="${XDG_CACHE_HOME:-$HOME/.cache}/git-wt/git-wt"
+
+stale() { [[ ! -x "$bin" || -n "$(find "$src" -newer "$bin" \( -name '*.go' -o -name 'go.mod' -o -name 'go.sum' \) -print -quit)" ]]; }
+
+if stale; then
+  if command -v go >/dev/null; then
+    (cd "$src" && go build -o "$bin" .)
+  elif [[ ! -x "$bin" ]]; then
+    echo "git wt: go not found · brew install go" >&2
+    exit 1
+  fi
+fi
+exec "$bin" "$@"

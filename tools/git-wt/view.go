@@ -163,6 +163,9 @@ func (m model) headerLeft(level headerLevel) string {
 		}
 		parts = append(parts, m.st.red.Render(fmt.Sprintf("%d marked", n)), reclaim)
 	}
+	if m.sessionsBlind {
+		parts = append(parts, m.st.yellow.Render("⚠ sessions unreadable"))
+	}
 	if q := m.filter.Value(); q != "" {
 		parts = append(parts, m.st.accent.Render(fmt.Sprintf("/%s %d/%d", q, len(m.visible), len(m.all))))
 	}
@@ -339,7 +342,10 @@ func (m model) cellText(w Worktree, id colID, aheadW int) string {
 	case colMain:
 		return fmt.Sprintf("%-*s −%d", aheadW, fmt.Sprintf("+%d", w.Ahead), w.Behind)
 	case colPR:
-		if m.ghFailed {
+		switch {
+		case w.PR == nil && w.SquashMerged:
+			return "in main"
+		case m.ghFailed:
 			return "?"
 		}
 		return w.PR.Word()
@@ -488,6 +494,9 @@ func (m model) renderCell(w Worktree, col column, base lipgloss.Style, aheadW in
 		if w.PR != nil && !m.ghFailed && w.PR.URL != "" {
 			return m.prLink(w.PR, text, base, col.width)
 		}
+		if w.SquashMerged {
+			st = st.Foreground(m.st.c.accent)
+		}
 	case colAge, colSize, colMain:
 		if plain {
 			st = st.Foreground(m.st.c.muted)
@@ -630,7 +639,12 @@ func (m model) branchLine(w Worktree) string {
 }
 
 func (m model) prLine(w Worktree) string {
+	squash := m.st.accent.Render("in main") + m.st.muted.Render(" · squash-merged without a PR")
 	switch {
+	case w.PR == nil && w.SquashMerged && m.ghFailed:
+		return squash + m.st.muted.Render(" · ? "+m.ghErr)
+	case w.PR == nil && w.SquashMerged:
+		return squash
 	case m.ghFailed:
 		return m.st.muted.Render("? " + m.ghErr)
 	case w.PR == nil:
@@ -692,10 +706,13 @@ func (m model) statLine(line string) string {
 }
 
 func (m model) sessionLines(w Worktree) []string {
-	if len(w.Sessions) == 0 {
-		return []string{m.st.muted.Render("no sessions")}
-	}
 	var lines []string
+	if m.sessionsBlind {
+		lines = append(lines, m.st.yellow.Render("⚠ can't read Claude session data · live sessions won't block deletion"))
+	}
+	if len(w.Sessions) == 0 {
+		return append(lines, m.st.muted.Render("no sessions"))
+	}
 	for _, s := range w.Sessions {
 		mark := "  "
 		if s.Live {

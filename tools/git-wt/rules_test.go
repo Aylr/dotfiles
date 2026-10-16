@@ -26,6 +26,7 @@ func TestBlockedReasons(t *testing.T) {
 		{"live session", Worktree{Sessions: live}, []string{"live Claude session"}},
 		{"stale session", Worktree{Sessions: []Session{{}}}, nil},
 		{"locked", Worktree{Locked: true}, []string{"locked"}},
+		{"in use", Worktree{Procs: []Proc{{1, "zsh"}, {2, "node"}, {3, "zsh"}}}, []string{"in use by zsh, node"}},
 		{"detached has no default branch", Worktree{Detached: true}, nil},
 		{"all in order", Worktree{
 			Main: true, Current: true, Branch: "main", Locked: true, Sessions: live,
@@ -55,6 +56,8 @@ func TestPreMark(t *testing.T) {
 	}{
 		{"merged clean", mergedClean(), true},
 		{"closed clean", Worktree{Branch: "x", PR: &PR{State: "CLOSED"}}, true},
+		{"squash merged without PR", Worktree{Branch: "x", SquashMerged: true}, true},
+		{"squash merged but in use", Worktree{Branch: "x", SquashMerged: true, Procs: []Proc{{1, "zsh"}}}, false},
 		{"merged dirty", with(func(w *Worktree) { w.DirtyFiles = []string{"a"} }), false},
 		{"merged untracked", with(func(w *Worktree) { w.Untracked = []string{"a"} }), false},
 		{"merged lost", with(func(w *Worktree) { w.Lost = 2 }), false},
