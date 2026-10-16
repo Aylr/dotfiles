@@ -42,6 +42,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
     echo "  7  GitHub CLI      (gh auth login)"
     echo "  8  Agent CLIs      (Claude Code, Hermes Agent)"
+    echo "  9  Tools           (build git-wt into bin/)"
     exit 0
 fi
 
@@ -245,6 +246,18 @@ elif curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --
     success "Hermes Agent installed."
 else
     warn "Hermes Agent install failed — retry: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
+fi
+
+# ── Stage 9: Tools ──────────────────────────────────────────────────────────
+
+header "Stage 9: Tools"
+
+if command -v go &>/dev/null; then
+    (cd "$DOTFILES_DIR/tools/git-wt" && go build -o "$DOTFILES_DIR/bin/git-wt" .) \
+        && success "git-wt built." \
+        || warn "git-wt build failed — retry: cd tools/git-wt && go build -o ../../bin/git-wt ."
+else
+    warn "go not found — skipping git-wt. Run brew bundle first."
 fi
 
 # ── Done: Manual checklist ───────────────────────────────────────────────────
