@@ -151,7 +151,7 @@ func (m model) headerView() string {
 func (m model) headerLeft(level headerLevel) string {
 	parts := []string{m.st.bold.Render(m.repo.Name)}
 	if level < headerNoCount {
-		parts = append(parts, m.worktreeCount())
+		parts = append(parts, m.rowCount())
 	}
 	if n, kb, partial := m.markedTotals(); n > 0 {
 		reclaim := humanLong(kb)
@@ -172,17 +172,17 @@ func (m model) headerLeft(level headerLevel) string {
 	return " " + m.st.badge.Render(" git wt ") + "  " + strings.Join(parts, m.st.muted.Render(" · "))
 }
 
-func (m model) worktreeCount() string {
-	n := 0
+func (m model) rowCount() string {
+	var others []Worktree
 	for _, w := range m.all {
 		if !w.Main {
-			n++
+			others = append(others, w)
 		}
 	}
-	if n == 0 {
-		return "no other worktrees"
+	if len(others) == 0 {
+		return "no other worktrees or branches"
 	}
-	return count(n, "worktree", "worktrees")
+	return strings.ReplaceAll(describeKinds(others), " and ", " · ")
 }
 
 func (m model) markedTotals() (n int, kb int64, partial bool) {
@@ -193,7 +193,7 @@ func (m model) markedTotals() (n int, kb int64, partial bool) {
 		n++
 		if w.SizeKB > 0 {
 			kb += w.SizeKB
-		} else {
+		} else if !w.BranchOnly() {
 			partial = true
 		}
 	}
@@ -242,6 +242,7 @@ type colID int
 const (
 	colMark colID = iota
 	colName
+	colKind
 	colAge
 	colState
 	colMain
@@ -281,6 +282,7 @@ func (m model) tableLayout(inner int) tableLayout {
 		{id: colAge, title: "AGE", right: true},
 		{id: colState, title: "STATE"},
 		{id: colPR, title: "PR"},
+		{id: colKind, title: "KIND"},
 		{id: colSize, title: "SIZE", right: true},
 		{id: colMain, title: "±MAIN"},
 		{id: colClaude, title: "CLAUDE"},
@@ -318,7 +320,7 @@ func (m model) tableLayout(inner int) tableLayout {
 		included[colClaude] = claude
 	}
 	tl.cols = []column{{id: colMark, width: 3}, {id: colName, title: "NAME", width: nameW}}
-	for id := colAge; id <= colClaude; id++ {
+	for id := colKind; id <= colClaude; id++ {
 		if c, ok := included[id]; ok {
 			tl.cols = append(tl.cols, c)
 		}
@@ -335,6 +337,8 @@ func (m model) cellText(w Worktree, id colID, aheadW int) string {
 		return "[ ]"
 	case colName:
 		return w.Name
+	case colKind:
+		return kindText(w)
 	case colAge:
 		return age(w.LastActivity)
 	case colState:
@@ -343,14 +347,14 @@ func (m model) cellText(w Worktree, id colID, aheadW int) string {
 		return fmt.Sprintf("%-*s −%d", aheadW, fmt.Sprintf("+%d", w.Ahead), w.Behind)
 	case colPR:
 		switch {
-		case w.PR == nil && w.SquashMerged:
+		case w.PR == nil && w.InBase:
 			return "in main"
 		case m.ghFailed:
 			return "?"
 		}
 		return w.PR.Word()
 	case colSize:
-		if w.Main {
+		if w.Main || w.BranchOnly() {
 			return ""
 		}
 		return sizeText(w.SizeKB)
@@ -358,6 +362,35 @@ func (m model) cellText(w Worktree, id colID, aheadW int) string {
 		return claudeText(w)
 	}
 	return ""
+}
+
+func kindText(w Worktree) string {
+	if w.BranchOnly() {
+		return "branch"
+	}
+	return "worktree"
+}
+
+func describeKinds(ws []Worktree) string {
+	wt, br := 0, 0
+	for _, w := range ws {
+		if w.BranchOnly() {
+			br++
+		} else {
+			wt++
+		}
+	}
+	var parts []string
+	if wt > 0 {
+		parts = append(parts, count(wt, "worktree", "worktrees"))
+	}
+	if br > 0 {
+		parts = append(parts, count(br, "branch", "branches"))
+	}
+	if len(parts) == 0 {
+		return "nothing"
+	}
+	return strings.Join(parts, " and ")
 }
 
 func stateText(w Worktree) string {
@@ -405,9 +438,9 @@ func (m model) tableView(l layout) string {
 	}
 	switch {
 	case len(m.visible) == 0:
-		lines = append(lines, m.st.muted.Render(fmt.Sprintf("  no worktrees match %q · esc clears", m.filter.Value())))
+		lines = append(lines, m.st.muted.Render(fmt.Sprintf("  nothing matches %q · esc clears", m.filter.Value())))
 	case len(m.all) == 1 && m.filter.Value() == "":
-		lines = append(lines, m.st.muted.Render("  No worktrees besides main · nothing to clean up"))
+		lines = append(lines, m.st.muted.Render("  No worktrees or branches besides main · nothing to clean up"))
 	}
 	label := ""
 	if len(m.visible) > l.tableRows {
@@ -494,10 +527,10 @@ func (m model) renderCell(w Worktree, col column, base lipgloss.Style, aheadW in
 		if w.PR != nil && !m.ghFailed && w.PR.URL != "" {
 			return m.prLink(w.PR, text, base, col.width)
 		}
-		if w.SquashMerged {
+		if w.InBase {
 			st = st.Foreground(m.st.c.accent)
 		}
-	case colAge, colSize, colMain:
+	case colKind, colAge, colSize, colMain:
 		if plain {
 			st = st.Foreground(m.st.c.muted)
 		}
@@ -564,7 +597,7 @@ func (m model) detailView(l layout) string {
 func (m *model) setDetailContent() {
 	w := m.current()
 	if w == nil {
-		m.detail.SetContent(m.st.muted.Render("no worktree selected"))
+		m.detail.SetContent(m.st.muted.Render("nothing selected"))
 		return
 	}
 	lines := m.detailLines(*w)
@@ -610,7 +643,9 @@ func (m model) detailLines(w Worktree) []string {
 		}
 		add("commits", vs...)
 	}
-	add("claude", m.sessionLines(w)...)
+	if !w.BranchOnly() {
+		add("claude", m.sessionLines(w)...)
+	}
 	return lines
 }
 
@@ -632,6 +667,9 @@ func (m model) branchLine(w Worktree) string {
 	} else {
 		s += m.st.muted.Render(" · no upstream")
 	}
+	if w.BranchOnly() {
+		s += m.st.muted.Render(" · no worktree")
+	}
 	if w.Lost > 0 {
 		s += m.st.yellow.Render(" · " + count(w.Lost, "commit only here", "commits only here"))
 	}
@@ -641,9 +679,9 @@ func (m model) branchLine(w Worktree) string {
 func (m model) prLine(w Worktree) string {
 	squash := m.st.accent.Render("in main") + m.st.muted.Render(" · squash-merged without a PR")
 	switch {
-	case w.PR == nil && w.SquashMerged && m.ghFailed:
+	case w.PR == nil && w.InBase && m.ghFailed:
 		return squash + m.st.muted.Render(" · ? "+m.ghErr)
-	case w.PR == nil && w.SquashMerged:
+	case w.PR == nil && w.InBase:
 		return squash
 	case m.ghFailed:
 		return m.st.muted.Render("? " + m.ghErr)
@@ -792,11 +830,19 @@ func (m model) itemNameWidth() int {
 	return min(w, 40)
 }
 
+func (m model) itemWorktrees() []Worktree {
+	var ws []Worktree
+	for _, it := range m.items {
+		ws = append(ws, it.wt)
+	}
+	return ws
+}
+
 func (m model) confirmLines() (head, body, foot []string) {
-	head = []string{m.st.bold.Render(fmt.Sprintf("Delete %s?", count(len(m.items), "worktree", "worktrees"))), ""}
+	head = []string{m.st.bold.Render(fmt.Sprintf("Delete %s?", describeKinds(m.itemWorktrees()))), ""}
 	nameW := m.itemNameWidth()
 	var kb int64
-	partial := false
+	partial, anyWorktree := false, false
 	for _, it := range m.items {
 		var labels []string
 		for _, s := range it.steps {
@@ -806,19 +852,23 @@ func (m model) confirmLines() (head, body, foot []string) {
 		for _, loss := range Losses(it.wt) {
 			body = append(body, "    "+m.st.yellow.Render(loss))
 		}
+		if it.wt.BranchOnly() {
+			continue
+		}
+		anyWorktree = true
 		if it.wt.SizeKB > 0 {
 			kb += it.wt.SizeKB
 		} else {
 			partial = true
 		}
 	}
-	frees := humanLong(kb)
-	if partial {
-		frees += "+"
+	frees := ""
+	if anyWorktree {
+		frees = "Frees " + m.st.bold.Render(humanLong(kb)+map[bool]string{true: "+"}[partial]) + ". "
 	}
 	foot = []string{
 		"",
-		"Frees " + m.st.bold.Render(frees) + ". " + m.st.red.Render("Remote branch deletes are permanent."),
+		frees + m.st.red.Render("Remote branch deletes are permanent."),
 		"",
 		m.st.red.Bold(true).Render("y") + " delete   " + m.st.bold.Render("n / esc") + m.st.muted.Render(" back"),
 	}
@@ -827,7 +877,8 @@ func (m model) confirmLines() (head, body, foot []string) {
 
 func (m model) progressLines() (head, body, foot []string) {
 	nameW := m.itemNameWidth()
-	done, failed, cancelled := 0, 0, 0
+	failed, cancelled := 0, 0
+	var deleted []Worktree
 	var kb int64
 	for _, it := range m.items {
 		line := m.itemIcon(it) + " " + m.st.bold.Width(nameW).Render(truncate(it.wt.Name, nameW)) + "  "
@@ -842,13 +893,13 @@ func (m model) progressLines() (head, body, foot []string) {
 			failed++
 			body = append(body, "    "+m.st.red.Render("✕ "+firstLine(it.err.Error())))
 		case it.finished():
-			done++
+			deleted = append(deleted, it.wt)
 		}
 		if it.removed() && it.wt.SizeKB > 0 {
 			kb += it.wt.SizeKB
 		}
 	}
-	total := len(m.items)
+	done, total := len(deleted), len(m.items)
 	if m.stage == deleting {
 		title := m.st.bold.Render(fmt.Sprintf("Deleting %d of %d", done+failed, total))
 		if m.stopping {
@@ -856,13 +907,14 @@ func (m model) progressLines() (head, body, foot []string) {
 		}
 		return []string{m.spinner.View() + " " + title, ""}, body, nil
 	}
-	summary := m.st.green.Render("✓ ") + m.st.bold.Render("Deleted "+count(done, "worktree", "worktrees"))
+	summary := m.st.green.Render("✓ ") + m.st.bold.Render("Deleted "+describeKinds(deleted))
 	if failed+cancelled > 0 {
 		icon := m.st.red.Render("✕ ")
 		if failed == 0 {
 			icon = m.st.yellow.Render("– ")
 		}
-		summary = icon + m.st.bold.Render(fmt.Sprintf("Deleted %d of %d worktrees", done, total))
+		summary = icon + m.st.bold.Render(fmt.Sprintf("Deleted %d of %d", done, total))
+
 		if failed > 0 {
 			summary += m.st.red.Render(fmt.Sprintf(" · %d failed", failed))
 		}

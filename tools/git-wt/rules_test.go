@@ -56,8 +56,11 @@ func TestPreMark(t *testing.T) {
 	}{
 		{"merged clean", mergedClean(), true},
 		{"closed clean", Worktree{Branch: "x", PR: &PR{State: "CLOSED"}}, true},
-		{"squash merged without PR", Worktree{Branch: "x", SquashMerged: true}, true},
-		{"squash merged but in use", Worktree{Branch: "x", SquashMerged: true, Procs: []Proc{{1, "zsh"}}}, false},
+		{"squash merged without PR", Worktree{Branch: "x", InBase: true}, true},
+		{"in base with a worktree", Worktree{Path: "/p", Branch: "x", InBase: true}, true},
+		{"in base but unpushed commits", Worktree{Branch: "x", InBase: true, Lost: 1}, false},
+
+		{"squash merged but in use", Worktree{Branch: "x", InBase: true, Procs: []Proc{{1, "zsh"}}}, false},
 		{"merged dirty", with(func(w *Worktree) { w.DirtyFiles = []string{"a"} }), false},
 		{"merged untracked", with(func(w *Worktree) { w.Untracked = []string{"a"} }), false},
 		{"merged lost", with(func(w *Worktree) { w.Lost = 2 }), false},

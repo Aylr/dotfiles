@@ -45,7 +45,8 @@ func PreMark(w Worktree, defaultBranch string) bool {
 	if len(w.DirtyFiles) > 0 || len(w.Untracked) > 0 || w.Lost > 0 {
 		return false
 	}
-	if w.SquashMerged || w.PR != nil && (w.PR.State == "MERGED" || w.PR.State == "CLOSED") {
+	if w.InBase || w.PR != nil && (w.PR.State == "MERGED" || w.PR.State == "CLOSED") {
+
 		return true
 	}
 	return w.Detached && !w.Orphaned

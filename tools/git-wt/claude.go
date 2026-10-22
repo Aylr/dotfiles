@@ -163,7 +163,9 @@ type attributor struct{ paths []string }
 func newAttributor(ws []Worktree) attributor {
 	var a attributor
 	for _, w := range ws {
-		a.paths = append(a.paths, strings.TrimRight(w.Path, "/"))
+		if !w.BranchOnly() {
+			a.paths = append(a.paths, strings.TrimRight(w.Path, "/"))
+		}
 	}
 	sort.Slice(a.paths, func(i, j int) bool { return len(a.paths[i]) > len(a.paths[j]) })
 	return a
@@ -186,11 +188,15 @@ func transcriptFiles(projects string, ws []Worktree) []string {
 	exact := map[string]bool{}
 	mainPrefix := ""
 	for _, w := range ws {
+		if w.BranchOnly() {
+			continue
+		}
 		exact[pathEncoder.Replace(w.Path)] = true
 		if w.Main {
 			mainPrefix = pathEncoder.Replace(w.Path)
 		}
 	}
+
 	var files []string
 	for _, e := range entries {
 		name := e.Name()
