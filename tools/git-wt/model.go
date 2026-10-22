@@ -47,7 +47,7 @@ type sources struct {
 
 func realSources() sources {
 	return sources{
-		list:      ListWorktrees,
+		list:      ListAll,
 		fetch:     Fetch,
 		collect:   Collect,
 		prs:       func(root string, heads []string) ([]PR, error) { return prSource(root, heads) },
@@ -90,16 +90,16 @@ type (
 		ws  []Worktree
 		err error
 	}
-	detailDueMsg struct{ path string }
+	detailDueMsg struct{ key string }
 	detailMsg    struct {
 		gen    int
-		path   string
+		key    string
 		detail Detail
 		err    error
 	}
 	diffReadyMsg struct {
-		path, base, pager string
-		err               error
+		dir, base, rev, pager string
+		err                   error
 	}
 	diffDoneMsg struct{ err error }
 	stepMsg     struct {
@@ -146,14 +146,14 @@ type model struct {
 	all            []Worktree
 	visible        []int
 	cursor, offset int
-	cursorPath     string
+	cursorKey      string
 	toggled        map[string]bool
 
 	filter    textinput.Model
 	filtering bool
 
 	detail        viewport.Model
-	detailPath    string
+	detailKey     string
 	details       map[string]detailResult
 	detailLoading map[string]bool
 	detailGen     int
@@ -194,7 +194,7 @@ type model struct {
 }
 
 func runTUI(r Repo) error {
-	ws, err := ListWorktrees(r)
+	ws, err := ListAll(r)
 	if err != nil {
 		return err
 	}
@@ -355,7 +355,7 @@ func (m *model) update(msg tea.Msg) tea.Cmd {
 		}
 		m.detailGen++
 		m.detailLoading = map[string]bool{}
-		return tea.Batch(m.collectCmd(), m.loadDetail(m.cursorPath))
+		return tea.Batch(m.collectCmd(), m.loadDetail(m.cursorKey))
 	case prsLoadedMsg:
 		if msg.gen != m.gen {
 			return nil
@@ -386,13 +386,13 @@ func (m *model) update(msg tea.Msg) tea.Cmd {
 	case listedMsg:
 		return m.applyListed(msg)
 	case detailDueMsg:
-		return m.loadDetail(msg.path)
+		return m.loadDetail(msg.key)
 	case detailMsg:
 		if msg.gen != m.detailGen {
 			return nil
 		}
-		delete(m.detailLoading, msg.path)
-		m.details[msg.path] = detailResult{msg.gen, msg.detail, msg.err}
+		delete(m.detailLoading, msg.key)
+		m.details[msg.key] = detailResult{msg.gen, msg.detail, msg.err}
 	case diffReadyMsg:
 		if msg.err != nil {
 			m.status = "✕ diff: " + msg.err.Error()
@@ -430,12 +430,12 @@ func (m *model) applyPRs(prs []PR, err error) tea.Cmd {
 }
 
 func (m *model) mergeCollected(msg collectedMsg) tea.Cmd {
-	byPath := make(map[string]Worktree, len(msg.ws))
+	byKey := make(map[string]Worktree, len(msg.ws))
 	for _, w := range msg.ws {
-		byPath[w.Path] = w
+		byKey[w.Key()] = w
 	}
 	for i := range m.all {
-		if w, ok := byPath[m.all[i].Path]; ok {
+		if w, ok := byKey[m.all[i].Key()]; ok {
 			mergeGitFacts(&m.all[i], w)
 		}
 	}
@@ -460,7 +460,7 @@ func mergeGitFacts(dst *Worktree, src Worktree) {
 	dst.Upstream = src.Upstream
 	dst.DirtyFiles, dst.Untracked = src.DirtyFiles, src.Untracked
 	dst.Lost, dst.Ahead, dst.Behind = src.Lost, src.Ahead, src.Behind
-	dst.Orphaned = src.Orphaned
+	dst.Orphaned, dst.InBase = src.Orphaned, src.InBase
 	dst.LastActivity = src.LastActivity
 }
 
@@ -488,7 +488,7 @@ func (m *model) maybePremark() {
 	}
 	m.premarked = true
 	for i := range m.all {
-		if w := &m.all[i]; !m.toggled[w.Path] {
+		if w := &m.all[i]; !m.toggled[w.Key()] {
 			w.Marked = PreMark(*w, m.repo.DefaultBranch)
 		}
 	}
@@ -506,7 +506,7 @@ func (m *model) checkLoaded() tea.Cmd {
 }
 
 func (m model) busy() bool {
-	return len(m.pending) > 0 || m.stage == deleting || m.detailLoading[m.cursorPath]
+	return len(m.pending) > 0 || m.stage == deleting || m.detailLoading[m.cursorKey]
 }
 
 func (m *model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
@@ -606,7 +606,7 @@ func (m *model) confirmKey(msg tea.KeyPressMsg) tea.Cmd {
 func (m *model) moveCursor(delta int) {
 	m.cursor = min(max(m.cursor+delta, 0), max(len(m.visible)-1, 0))
 	if w := m.current(); w != nil {
-		m.cursorPath = w.Path
+		m.cursorKey = w.Key()
 	}
 }
 
@@ -617,8 +617,8 @@ func (m *model) current() *Worktree {
 	return &m.all[m.visible[m.cursor]]
 }
 
-func (m *model) indexOf(path string) int {
-	return slices.IndexFunc(m.all, func(w Worktree) bool { return w.Path == path })
+func (m *model) indexOf(key string) int {
+	return slices.IndexFunc(m.all, func(w Worktree) bool { return w.Key() == key })
 }
 
 func (m *model) toggleMark() {
@@ -631,7 +631,7 @@ func (m *model) toggleMark() {
 		return
 	}
 	w.Marked = !w.Marked
-	m.toggled[w.Path] = true
+	m.toggled[w.Key()] = true
 }
 
 func (m *model) startConfirm() {
@@ -727,10 +727,10 @@ func (m *model) reload() tea.Cmd {
 	removed := map[string]bool{}
 	for _, it := range m.items {
 		if it.removed() {
-			removed[it.wt.Path] = true
+			removed[it.wt.Key()] = true
 		}
 	}
-	m.all = slices.DeleteFunc(m.all, func(w Worktree) bool { return removed[w.Path] })
+	m.all = slices.DeleteFunc(m.all, func(w Worktree) bool { return removed[w.Key()] })
 	m.items = nil
 	m.stage = browsing
 	m.pending["list"] = true
@@ -749,12 +749,12 @@ func (m *model) applyListed(msg listedMsg) tea.Cmd {
 	}
 	old := make(map[string]Worktree, len(m.all))
 	for _, w := range m.all {
-		old[w.Path] = w
+		old[w.Key()] = w
 	}
 	decided := map[string]bool{}
 	for i := range msg.ws {
 		w := &msg.ws[i]
-		o, ok := old[w.Path]
+		o, ok := old[w.Key()]
 		if !ok {
 			continue
 		}
@@ -762,8 +762,8 @@ func (m *model) applyListed(msg listedMsg) tea.Cmd {
 		if w.SizeKB < 0 {
 			w.SizeKB = o.SizeKB
 		}
-		if m.premarked || m.toggled[w.Path] {
-			decided[w.Path] = true
+		if m.premarked || m.toggled[w.Key()] {
+			decided[w.Key()] = true
 		}
 	}
 	m.all = msg.ws
@@ -772,7 +772,7 @@ func (m *model) applyListed(msg listedMsg) tea.Cmd {
 	m.details = map[string]detailResult{}
 	m.detailLoading = map[string]bool{}
 	m.detailGen++
-	m.detailPath = ""
+	m.detailKey = ""
 	return m.startLoads()
 }
 
@@ -794,7 +794,7 @@ func (m *model) rebuild() {
 			m.visible = append(m.visible, i)
 		}
 	}
-	m.cursor = slices.IndexFunc(m.visible, func(i int) bool { return m.all[i].Path == m.cursorPath })
+	m.cursor = slices.IndexFunc(m.visible, func(i int) bool { return m.all[i].Key() == m.cursorKey })
 	if m.cursor < 0 {
 		m.cursor = 0
 	}
@@ -812,7 +812,7 @@ func (m *model) rebuild() {
 }
 
 func matches(w Worktree, q string) bool {
-	fields := []string{w.Name, w.Branch}
+	fields := []string{w.Name, w.Branch, kindText(w)}
 	if w.PR != nil {
 		fields = append(fields, w.PR.Title)
 	}
@@ -828,35 +828,35 @@ func matches(w Worktree, q string) bool {
 }
 
 func (m *model) syncDetail() tea.Cmd {
-	if m.cursorPath == m.detailPath {
+	if m.cursorKey == m.detailKey {
 		m.setDetailContent()
 		return nil
 	}
-	m.detailPath = m.cursorPath
+	m.detailKey = m.cursorKey
 	m.setDetailContent()
 	m.detail.GotoTop()
-	if m.detailFresh(m.cursorPath) || m.cursorPath == "" {
+	if m.detailFresh(m.cursorKey) || m.cursorKey == "" {
 		return nil
 	}
-	path := m.cursorPath
-	return tea.Tick(detailDelay, func(time.Time) tea.Msg { return detailDueMsg{path} })
+	key := m.cursorKey
+	return tea.Tick(detailDelay, func(time.Time) tea.Msg { return detailDueMsg{key} })
 }
 
-func (m *model) detailFresh(path string) bool {
-	res, ok := m.details[path]
+func (m *model) detailFresh(key string) bool {
+	res, ok := m.details[key]
 	return ok && res.gen == m.detailGen
 }
 
-func (m *model) loadDetail(path string) tea.Cmd {
-	i := m.indexOf(path)
-	if path == "" || path != m.cursorPath || m.detailFresh(path) || m.detailLoading[path] || i < 0 {
+func (m *model) loadDetail(key string) tea.Cmd {
+	i := m.indexOf(key)
+	if key == "" || key != m.cursorKey || m.detailFresh(key) || m.detailLoading[key] || i < 0 {
 		return nil
 	}
-	m.detailLoading[path] = true
+	m.detailLoading[key] = true
 	r, detail, w, gen := m.repo, m.src.detail, m.all[i], m.detailGen
 	return tea.Batch(func() tea.Msg {
 		d, err := detail(r, w)
-		return detailMsg{gen, path, d, err}
+		return detailMsg{gen, key, d, err}
 	}, m.spinner.Tick)
 }
 
@@ -867,12 +867,14 @@ func (m *model) diff() tea.Cmd {
 	}
 	r, wt, mergeBase := m.repo, *w, m.src.mergeBase
 	known := ""
-	if m.detailFresh(w.Path) {
-		known = m.details[w.Path].detail.MergeBase
+	if m.detailFresh(w.Key()) {
+		known = m.details[w.Key()].detail.MergeBase
 	}
 	return func() tea.Msg {
-		msg := diffReadyMsg{path: wt.Path, base: known}
-		if _, err := os.Stat(wt.Path); err != nil {
+		msg := diffReadyMsg{dir: wt.Dir(r.Root), base: known}
+		if wt.BranchOnly() {
+			msg.rev = wt.Head
+		} else if _, err := os.Stat(wt.Path); err != nil {
 			msg.err = errors.New("worktree directory is gone")
 			return msg
 		}
@@ -885,8 +887,13 @@ func (m *model) diff() tea.Cmd {
 }
 
 func execDiff(msg diffReadyMsg) tea.Cmd {
-	c := exec.Command("git", "-C", msg.path, "--paginate", "diff", msg.base)
+	args := []string{"-C", msg.dir, "--paginate", "diff", msg.base}
+	if msg.rev != "" {
+		args = append(args, msg.rev)
+	}
+	c := exec.Command("git", args...)
 	if msg.pager != "" {
+
 		c.Env = append(os.Environ(), "GIT_PAGER="+msg.pager)
 	}
 	return tea.ExecProcess(c, func(err error) tea.Msg { return diffDoneMsg{err} })

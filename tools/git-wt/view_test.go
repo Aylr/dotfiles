@@ -21,7 +21,7 @@ func loadedModel(t *testing.T, width, height int) model {
 			testRoot + "/.worktrees/open-feature":   {{ID: "0123456789ab", Title: "Patient flow entities and a very long session title", Live: true}},
 			testRoot + "/.worktrees/merged-feature": {{ID: "ba9876543210", Title: "Entity programs"}},
 		}},
-		detailMsg{path: m.cursorPath, detail: Detail{
+		detailMsg{key: m.cursorKey, detail: Detail{
 			MergeBase: "base",
 			Stat:      " app/models.py | 12 +++++++---\n 1 file changed, 7 insertions(+), 3 deletions(-)",
 			Commits:   []Commit{{Hash: "abc1234", When: "3 days ago", Subject: "Add entity programs"}},
@@ -81,6 +81,54 @@ func TestViewStages(t *testing.T) {
 		if out := ansi.Strip(s[stage].View().Content); !strings.Contains(out, want) {
 			t.Errorf("%s view missing %q", stage, want)
 		}
+	}
+}
+
+func TestViewNamesBothKinds(t *testing.T) {
+	s := stages(t, 120, 40)
+	checks := map[string][]string{
+		"browsing":   {"KIND", "worktree", "branch", "4 worktrees · 1 branch"},
+		"confirming": {"Delete 2 worktrees and 1 branch?", "Frees "},
+		"results":    {"Deleted 2 worktrees and 1 branch"},
+	}
+	for stage, wants := range checks {
+		out := ansi.Strip(s[stage].View().Content)
+		for _, want := range wants {
+			if !strings.Contains(out, want) {
+				t.Errorf("%s view missing %q:\n%s", stage, want, out)
+			}
+		}
+	}
+	out := ansi.Strip(s["browsing"].View().Content)
+	for _, line := range strings.Split(out, "\n") {
+		if strings.Contains(line, "old-branch") && strings.Contains(line, "?") {
+			t.Errorf("branch row should have no size cell: %q", line)
+		}
+	}
+}
+
+func TestBranchDetailOmitsSessions(t *testing.T) {
+	m := loadedModel(t, 120, 40)
+	if cursorName(m) != "old-branch" {
+		t.Fatalf("cursor on %q", cursorName(m))
+	}
+	out := ansi.Strip(m.View().Content)
+	if !strings.Contains(out, "no worktree") || strings.Contains(out, "no sessions") {
+		t.Errorf("branch detail wrong:\n%s", out)
+	}
+}
+
+func TestBranchOnlyConfirmSkipsFrees(t *testing.T) {
+	m := loadedModel(t, 120, 40)
+	for i := range m.all {
+		if !m.all[i].BranchOnly() {
+			m.all[i].Marked = false
+		}
+	}
+	m = send(m, press("x")...)
+	out := ansi.Strip(m.View().Content)
+	if !strings.Contains(out, "Delete 1 branch?") || strings.Contains(out, "Frees") {
+		t.Errorf("confirm for a lone branch:\n%s", out)
 	}
 }
 
@@ -158,7 +206,8 @@ func TestOnlyMainShowsEmptyState(t *testing.T) {
 	m := newModel(testRepo(), testWorktrees()[:1], stubSources(&stepLog{deleted: map[string]bool{}}))
 	m = send(m, tea.WindowSizeMsg{Width: 100, Height: 30})
 	out := ansi.Strip(m.View().Content)
-	for _, want := range []string{"No worktrees besides main", "no other worktrees"} {
+	for _, want := range []string{"No worktrees or branches besides main", "no other worktrees or branches"} {
+
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in\n%s", want, out)
 		}

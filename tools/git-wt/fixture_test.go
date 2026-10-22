@@ -81,7 +81,15 @@ func newFixtureRepo(t *testing.T) fixture {
 
 	add("claude/x", ".claude/worktrees/x", "-b", "claude-x")
 
+	git(t, root, "branch", "merged-branch")
+	git(t, root, "branch", "pushed-branch")
+	git(t, root, "update-ref", "refs/heads/pushed-branch", git(t, root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "pushed work"))
+	git(t, root, "push", "-u", "origin", "pushed-branch")
+	git(t, root, "branch", "local-branch")
+	git(t, root, "update-ref", "refs/heads/local-branch", git(t, root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "local work"))
+
 	git(t, root, "commit", "--allow-empty", "-m", "advance main")
+
 	git(t, root, "push", "origin", "main")
 
 	r, err := DetectRepo(root)

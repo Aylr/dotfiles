@@ -13,7 +13,10 @@ type Step struct {
 func (s Step) Run(r Repo) error { return s.run(r) }
 
 func DeleteSteps(w Worktree) []Step {
-	steps := []Step{{"worktree", func(r Repo) error { return removeWorktree(r, w) }}}
+	var steps []Step
+	if !w.BranchOnly() {
+		steps = append(steps, Step{"worktree", func(r Repo) error { return removeWorktree(r, w) }})
+	}
 	if w.Branch != "" {
 		steps = append(steps, Step{"branch", func(r Repo) error {
 			_, err := runGit(r.Root, "branch", "-D", w.Branch)

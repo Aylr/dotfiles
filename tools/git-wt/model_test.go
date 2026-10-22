@@ -21,6 +21,7 @@ func testWorktrees() []Worktree {
 	now := time.Now()
 	return []Worktree{
 		{Path: testRoot, Name: "backend", Branch: "main", Main: true, Current: true, Upstream: "origin/main", LastActivity: now, SizeKB: -1},
+		{Name: "old-branch", Branch: "old-branch", Upstream: "origin/old-branch", LastActivity: now.Add(-90 * 24 * time.Hour)},
 		{Path: testRoot + "/.worktrees/merged-feature", Name: "merged-feature", Branch: "merged-feature", Upstream: "origin/merged-feature", LastActivity: now.Add(-61 * 24 * time.Hour), SizeKB: -1},
 		{Path: testRoot + "/.worktrees/open-feature", Name: "open-feature", Branch: "open-feature", Upstream: "origin/open-feature", Lost: 1, LastActivity: now.Add(-21 * 24 * time.Hour), SizeKB: -1},
 		{Path: testRoot + "/.worktrees/scratch", Name: "scratch", Branch: "scratch", DirtyFiles: []string{"a.go"}, LastActivity: now.Add(-5 * time.Hour), SizeKB: -1},
@@ -30,6 +31,7 @@ func testWorktrees() []Worktree {
 
 func testPRs() []PR {
 	return []PR{
+		{Number: 590, Title: "Old branch", URL: "https://github.com/acme/backend/pull/590", State: "MERGED", HeadRef: "old-branch"},
 		{Number: 601, Title: "Merged feature", URL: "https://github.com/acme/backend/pull/601", State: "MERGED", HeadRef: "merged-feature"},
 		{Number: 618, Title: "Open feature", URL: "https://github.com/acme/backend/pull/618", State: "OPEN", HeadRef: "open-feature"},
 	}
@@ -62,7 +64,11 @@ func stubSources(log *stepLog) sources {
 		procs:     func(ws []Worktree) map[string][]Proc { return log.procs },
 		steps: func(w Worktree) []Step {
 			var steps []Step
-			for _, label := range []string{"worktree", "branch"} {
+			labels := []string{"worktree", "branch"}
+			if w.BranchOnly() {
+				labels = labels[1:]
+			}
+			for _, label := range labels {
 				steps = append(steps, Step{Label: label, run: func(Repo) error {
 					log.ran = append(log.ran, w.Name+":"+label)
 					if w.Name == "scratch" && label == "worktree" {
@@ -180,7 +186,7 @@ func TestSortStalestFirstMainLast(t *testing.T) {
 	for _, i := range m.visible {
 		names = append(names, m.all[i].Name)
 	}
-	want := []string{"merged-feature", "open-feature", "validate", "scratch", "backend"}
+	want := []string{"old-branch", "merged-feature", "open-feature", "validate", "scratch", "backend"}
 	for i := range want {
 		if names[i] != want[i] {
 			t.Fatalf("order = %v, want %v", names, want)
@@ -264,7 +270,7 @@ func TestSpaceOnBlockedRowSetsStatus(t *testing.T) {
 
 func TestAsyncLoadsFillFieldsAndPremarkOnce(t *testing.T) {
 	m, _ := newTestModel(t)
-	m = send(m, press("j", "j", "space")...)
+	m = send(m, press("j", "j", "j", "space")...)
 	if !rowNamed(m, "validate").Marked {
 		t.Fatal("toggle before pre-mark did not mark validate")
 	}
@@ -306,6 +312,9 @@ func TestAsyncLoadsFillFieldsAndPremarkOnce(t *testing.T) {
 	if !rowNamed(m, "merged-feature").Marked {
 		t.Fatal("merged clean worktree not pre-marked")
 	}
+	if !rowNamed(m, "old-branch").Marked {
+		t.Fatal("merged branch without a worktree not pre-marked")
+	}
 	if rowNamed(m, "validate").Marked {
 		t.Fatal("pre-mark overrode the user's toggle")
 	}
@@ -313,7 +322,7 @@ func TestAsyncLoadsFillFieldsAndPremarkOnce(t *testing.T) {
 		t.Fatal("dirty or main worktree pre-marked")
 	}
 
-	m = send(m, press("g", "space")...)
+	m = send(m, press("g", "j", "space")...)
 	m = send(m, collectedMsg{gen: m.gen, ws: m.all, withPRs: true})
 	m = send(m, sessionsLoadedMsg{gen: m.gen})
 	if rowNamed(m, "merged-feature").Marked {
@@ -377,11 +386,11 @@ func TestDeleteFlowAndReload(t *testing.T) {
 	m, log := newTestModel(t)
 	m = loadAllAsync(m)
 	m = send(m, press("G", "k", "space")...)
-	if !rowNamed(m, "scratch").Marked || !rowNamed(m, "merged-feature").Marked || !rowNamed(m, "validate").Marked {
-		t.Fatal("expected merged-feature, validate and scratch marked")
+	if !rowNamed(m, "scratch").Marked || !rowNamed(m, "merged-feature").Marked || !rowNamed(m, "validate").Marked || !rowNamed(m, "old-branch").Marked {
+		t.Fatal("expected old-branch, merged-feature, validate and scratch marked")
 	}
 	m = send(m, press("x")...)
-	if m.stage != confirming || len(m.items) != 3 {
+	if m.stage != confirming || len(m.items) != 4 {
 		t.Fatalf("stage=%v items=%d", m.stage, len(m.items))
 	}
 	m = send(m, press("n")...)
@@ -395,7 +404,7 @@ func TestDeleteFlowAndReload(t *testing.T) {
 	if m.stage != results {
 		t.Fatalf("stage = %v, want results", m.stage)
 	}
-	want := []string{"merged-feature:branch", "merged-feature:worktree", "scratch:worktree", "validate:branch", "validate:worktree"}
+	want := []string{"merged-feature:branch", "merged-feature:worktree", "old-branch:branch", "scratch:worktree", "validate:branch", "validate:worktree"}
 	if got := slices.Sorted(slices.Values(log.ran)); !slices.Equal(got, want) {
 		t.Fatalf("ran %v, want %v", log.ran, want)
 	}
@@ -404,7 +413,7 @@ func TestDeleteFlowAndReload(t *testing.T) {
 			t.Fatalf("%s ran its steps out of order: %v", name, log.ran)
 		}
 	}
-	scratch := m.items[2]
+	scratch := m.items[3]
 	if scratch.err == nil || scratch.states[0] != stepFailed || scratch.states[1] != stepSkipped {
 		t.Fatalf("scratch item = %+v", scratch.states)
 	}
@@ -431,16 +440,16 @@ func TestDeleteFlowAndReload(t *testing.T) {
 
 func TestDetailLoadsLazilyAndCaches(t *testing.T) {
 	m, _ := newTestModel(t)
-	path := m.cursorPath
-	m = send(m, detailDueMsg{path: path})
+	path := m.cursorKey
+	m = send(m, detailDueMsg{key: path})
 	if !m.detailLoading[path] {
 		t.Fatal("detail load not started")
 	}
-	m = send(m, detailMsg{path: path, detail: Detail{MergeBase: "base", Stat: " a.go | 2 +-"}})
+	m = send(m, detailMsg{key: path, detail: Detail{MergeBase: "base", Stat: " a.go | 2 +-"}})
 	if m.details[path].detail.MergeBase != "base" || m.detailLoading[path] {
 		t.Fatal("detail not cached")
 	}
-	m = send(m, detailDueMsg{path: path})
+	m = send(m, detailDueMsg{key: path})
 	if m.detailLoading[path] {
 		t.Fatal("cached detail reloaded")
 	}
@@ -462,7 +471,7 @@ func confirmed(t *testing.T) model {
 	m, _ := newTestModel(t)
 	m = loadAllAsync(m)
 	m = send(m, press("G", "k", "space", "x")...)
-	if m.stage != confirming || len(m.items) != 3 {
+	if m.stage != confirming || len(m.items) != 4 {
 		t.Fatalf("stage=%v items=%d", m.stage, len(m.items))
 	}
 	return m
@@ -548,7 +557,7 @@ func TestCtrlCDuringDeleteStopsAfterCurrentItem(t *testing.T) {
 			t.Fatalf("%s should not have started: %+v", it.wt.Name, it.states)
 		}
 	}
-	if out := ansi.Strip(m.View().Content); !strings.Contains(out, "2 not started") {
+	if out := ansi.Strip(m.View().Content); !strings.Contains(out, "3 not started") {
 		t.Fatalf("results should count skipped items:\n%s", out)
 	}
 }
@@ -571,8 +580,9 @@ func TestDeleteWaitsForPRsAndSessions(t *testing.T) {
 
 func TestRowBecomingBlockedLosesMark(t *testing.T) {
 	m, _ := newTestModel(t)
-	m = send(m, press("j", "space")...)
+	m = send(m, press("j", "j", "space")...)
 	if !rowNamed(m, "open-feature").Marked {
+
 		t.Fatal("open-feature should be markable before PRs load")
 	}
 	m = loadAllAsync(m)
@@ -607,9 +617,9 @@ func TestGhFailureReasonShownOnce(t *testing.T) {
 
 func TestFetchInvalidatesCachedDetail(t *testing.T) {
 	m, _ := newTestModel(t)
-	path := m.cursorPath
-	m = send(m, detailDueMsg{path: path})
-	stale := detailMsg{gen: m.detailGen, path: path, detail: Detail{MergeBase: "old"}}
+	path := m.cursorKey
+	m = send(m, detailDueMsg{key: path})
+	stale := detailMsg{gen: m.detailGen, key: path, detail: Detail{MergeBase: "old"}}
 	m = send(m, stale)
 	if !m.detailFresh(path) {
 		t.Fatal("detail not cached")
@@ -633,6 +643,7 @@ func TestFetchInvalidatesCachedDetail(t *testing.T) {
 
 func TestDiffOnVanishedWorktree(t *testing.T) {
 	m, _ := newTestModel(t)
+	m = send(m, press("j")...)
 	msgs := runCmd(m.diff())
 	if len(msgs) != 1 {
 		t.Fatalf("msgs = %v", msgs)
@@ -640,6 +651,42 @@ func TestDiffOnVanishedWorktree(t *testing.T) {
 	m = send(m, msgs[0])
 	if m.status != "✕ diff: worktree directory is gone" {
 		t.Fatalf("status = %q", m.status)
+	}
+}
+
+func TestDiffOnBranchRunsFromRoot(t *testing.T) {
+	m, _ := newTestModel(t)
+	for i := range m.all {
+		if m.all[i].Name == "old-branch" {
+			m.all[i].Head = "feedface"
+		}
+	}
+	if cursorName(m) != "old-branch" {
+		t.Fatalf("cursor on %q", cursorName(m))
+	}
+	msgs := runCmd(m.diff())
+	if len(msgs) != 1 {
+		t.Fatalf("msgs = %v", msgs)
+	}
+	got := msgs[0].(diffReadyMsg)
+	if got.err != nil || got.dir != testRoot || got.rev != "feedface" || got.base != "base" {
+		t.Fatalf("diff msg = %+v", got)
+	}
+}
+
+func TestBranchRowsFilterAndMarkByKey(t *testing.T) {
+	m, _ := newTestModel(t)
+	m = send(m, press("/", "b", "r", "a", "n", "c", "h", "enter")...)
+	if len(m.visible) != 1 || cursorName(m) != "old-branch" {
+		t.Fatalf("kind filter: visible=%d cursor=%q", len(m.visible), cursorName(m))
+	}
+	m = send(m, press("space")...)
+	if !rowNamed(m, "old-branch").Marked || !m.toggled["branch:old-branch"] {
+		t.Fatalf("mark on branch row: marked=%v toggled=%v", rowNamed(m, "old-branch").Marked, m.toggled)
+	}
+	m = send(m, press("esc")...)
+	if cursorName(m) != "old-branch" {
+		t.Fatalf("cursor lost after clearing filter: %q", cursorName(m))
 	}
 }
 
@@ -667,7 +714,7 @@ func TestSquashMergedShowsInMain(t *testing.T) {
 	m, _ := newTestModel(t)
 	for i := range m.all {
 		if m.all[i].Name == "scratch" {
-			m.all[i].SquashMerged = true
+			m.all[i].InBase = true
 		}
 	}
 	m = send(m, prsLoadedMsg{gen: m.gen, err: errors.New("offline")})

@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	dump := flag.Bool("dump", false, "print one tab-separated line per worktree and exit")
+	dump := flag.Bool("dump", false, "print one tab-separated line per worktree or branch and exit")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: git wt [--dump]\n\nReview and delete the worktrees of the current repo.\nKeys: space mark · d diff · / filter · x delete marked · ? help · q quit")
+		fmt.Fprintln(os.Stderr, "usage: git wt [--dump]\n\nReview and delete the worktrees and branches of the current repo.\nKeys: space mark · d diff · / filter · x delete marked · ? help · q quit")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -46,7 +46,7 @@ func claudeDir() string {
 }
 
 func loadAll(r Repo) ([]Worktree, error) {
-	ws, err := ListWorktrees(r)
+	ws, err := ListAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func runDump(r Repo) error {
 		return err
 	}
 	tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tAGE\tDIRTY/UNTR/LOST\tAHEAD/BEHIND\tPR\tSIZE\tCLAUDE\tLIVE\tVERDICT")
+	fmt.Fprintln(tw, "NAME\tKIND\tAGE\tDIRTY/UNTR/LOST\tAHEAD/BEHIND\tPR\tSIZE\tCLAUDE\tLIVE\tVERDICT")
 	for _, w := range ws {
 		pr := w.PR.Word()
 		if w.PR != nil && w.PR.State != "OPEN" {
@@ -108,9 +108,13 @@ func runDump(r Repo) error {
 		} else if PreMark(w, r.DefaultBranch) {
 			verdict = "pre-marked"
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%d/%d/%d\t+%d/-%d\t%s\t%dM\t%s\t%v\t%s\n",
-			w.Name, dumpAge(w.LastActivity), len(w.DirtyFiles), len(w.Untracked), w.Lost,
-			w.Ahead, w.Behind, pr, w.SizeKB/1024, title, live, verdict)
+		size := ""
+		if !w.BranchOnly() {
+			size = fmt.Sprintf("%dM", w.SizeKB/1024)
+		}
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d/%d\t+%d/-%d\t%s\t%s\t%s\t%v\t%s\n",
+			w.Name, kindText(w), dumpAge(w.LastActivity), len(w.DirtyFiles), len(w.Untracked), w.Lost,
+			w.Ahead, w.Behind, pr, size, title, live, verdict)
 	}
 	return tw.Flush()
 }

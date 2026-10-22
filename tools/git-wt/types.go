@@ -34,13 +34,29 @@ type Worktree struct {
 	Lost                            int // commits that exist only here
 	Ahead, Behind                   int
 	Orphaned                        bool // detached HEAD unreachable from any branch
-	SquashMerged                    bool // no PR, but the branch's full diff already landed on base
+	InBase                          bool // no PR, but every change here already exists on base
 	LastActivity                    time.Time
 	PR                              *PR
 	Sessions                        []Session
 	Procs                           []Proc
 	SizeKB                          int64 // -1 while pending
 	Marked                          bool
+}
+
+func (w Worktree) BranchOnly() bool { return w.Path == "" }
+
+func (w Worktree) Key() string {
+	if w.BranchOnly() {
+		return "branch:" + w.Branch
+	}
+	return w.Path
+}
+
+func (w Worktree) Dir(root string) string {
+	if w.BranchOnly() {
+		return root
+	}
+	return w.Path
 }
 
 type Proc struct {

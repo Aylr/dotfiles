@@ -114,6 +114,40 @@ func ListWorktrees(r Repo) ([]Worktree, error) {
 		w.SizeKB = -1
 		w.Name = worktreeName(r.Root, *w)
 	}
+	return ws, nil
+}
+
+func ListBranches(r Repo, ws []Worktree) ([]Worktree, error) {
+	out, err := runGit(r.Root, "for-each-ref", "--format=%(refname)%00%(objectname)", "refs/heads")
+	if err != nil {
+		return nil, err
+	}
+	checkedOut := map[string]bool{}
+	for _, w := range ws {
+		checkedOut[w.Branch] = true
+	}
+	var bs []Worktree
+	for _, line := range strings.Split(out, "\n") {
+		ref, head, ok := strings.Cut(line, "\x00")
+		name := strings.TrimPrefix(ref, "refs/heads/")
+		if !ok || checkedOut[name] {
+			continue
+		}
+		bs = append(bs, Worktree{Name: name, Branch: name, Head: head})
+	}
+	return bs, nil
+}
+
+func ListAll(r Repo) ([]Worktree, error) {
+	ws, err := ListWorktrees(r)
+	if err != nil {
+		return nil, err
+	}
+	bs, err := ListBranches(r, ws)
+	if err != nil {
+		return nil, err
+	}
+	ws = append(ws, bs...)
 	Collect(r, ws)
 	return ws, nil
 }
@@ -157,42 +191,54 @@ func Collect(r Repo, ws []Worktree) {
 }
 
 func collectOne(r Repo, w *Worktree, baseOK bool) {
-	p, head := w.Path, w.Head
+	dir, head := w.Dir(r.Root), w.Head
 	w.DirtyFiles, w.Untracked, w.Upstream = nil, nil, ""
-	w.Ahead, w.Behind, w.Lost, w.Orphaned, w.SquashMerged = 0, 0, 0, false, false
+	w.Ahead, w.Behind, w.Lost, w.Orphaned, w.InBase = 0, 0, 0, false, false
 
-	if out, err := run(p, "git", "status", "--porcelain=v1", "-z"); err == nil {
-		w.DirtyFiles, w.Untracked = parseStatus(out)
+	if !w.BranchOnly() {
+		if out, err := run(dir, "git", "status", "--porcelain=v1", "-z"); err == nil {
+			w.DirtyFiles, w.Untracked = parseStatus(out)
+		}
 	}
 
 	if !w.Detached {
-		if up, err := runGit(p, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"); err == nil && up != "" {
-			if _, err := runGit(p, "show-ref", "--verify", "-q", "refs/remotes/"+up); err == nil {
+		if up, err := runGit(dir, "rev-parse", "--abbrev-ref", "--symbolic-full-name", w.Branch+"@{u}"); err == nil && up != "" {
+			if _, err := runGit(dir, "show-ref", "--verify", "-q", "refs/remotes/"+up); err == nil {
 				w.Upstream = up
 			}
 		}
 	}
 
 	if baseOK {
-		if out, err := runGit(p, "rev-list", "--left-right", "--count", r.Base+"..."+head); err == nil {
+		if out, err := runGit(dir, "rev-list", "--left-right", "--count", r.Base+"..."+head); err == nil {
 			left, right, _ := strings.Cut(out, "\t")
 			w.Behind, _ = strconv.Atoi(left)
 			w.Ahead, _ = strconv.Atoi(right)
 		}
 	}
 
-	w.LastActivity = lastActivity(p, head, w.DirtyFiles, w.Untracked)
+	w.LastActivity = lastActivity(dir, head, w.DirtyFiles, w.Untracked)
 
 	if w.Detached {
-		if out, err := runGit(p, "for-each-ref", "--contains", head, "--count=1", "refs/heads", "refs/remotes"); err == nil {
+		if out, err := runGit(dir, "for-each-ref", "--contains", head, "--count=1", "refs/heads", "refs/remotes"); err == nil {
 			w.Orphaned = out == ""
 		}
 	}
 
-	w.Lost = lostCommits(p, *w)
-	if w.Lost > 0 && w.PR == nil && !w.Detached && baseOK && squashMerged(p, r.Base, head) {
-		w.SquashMerged, w.Lost = true, 0
+	w.Lost = lostCommits(dir, *w)
+	if w.PR == nil && !w.Detached && baseOK && w.Branch != r.DefaultBranch {
+		switch {
+		case isAncestor(dir, head, r.Base):
+			w.InBase = true
+		case w.Lost > 0 && squashMerged(dir, r.Base, head):
+			w.InBase, w.Lost = true, 0
+		}
 	}
+}
+
+func isAncestor(dir, commit, of string) bool {
+	_, err := runGit(dir, "merge-base", "--is-ancestor", commit, of)
+	return err == nil
 }
 
 func squashMerged(p, base, head string) bool {
@@ -294,7 +340,7 @@ func DirSizeKB(path string) (int64, error) {
 }
 
 func MergeBase(r Repo, w Worktree) (string, error) {
-	return runGit(w.Path, "merge-base", r.Base, "HEAD")
+	return runGit(w.Dir(r.Root), "merge-base", r.Base, w.Head)
 }
 
 func LoadDetail(r Repo, w Worktree) (Detail, error) {
@@ -303,10 +349,16 @@ func LoadDetail(r Repo, w Worktree) (Detail, error) {
 		return Detail{}, err
 	}
 	d := Detail{MergeBase: mb}
-	if d.Stat, err = runGit(w.Path, "diff", "--stat=80", mb); err != nil {
+	dir := w.Dir(r.Root)
+	stat := []string{"diff", "--stat=80", mb}
+	if w.BranchOnly() {
+		stat = append(stat, w.Head)
+	}
+	if d.Stat, err = runGit(dir, stat...); err != nil {
 		return d, err
 	}
-	out, err := runGit(w.Path, "log", "-5", "--format=%h%x09%cr%x09%s", w.Head)
+	out, err := runGit(dir, "log", "-5", "--format=%h%x09%cr%x09%s", w.Head)
+
 	if err != nil {
 		return d, err
 	}

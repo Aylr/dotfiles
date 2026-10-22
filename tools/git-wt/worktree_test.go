@@ -150,9 +150,38 @@ func TestListWorktreesFixture(t *testing.T) {
 	}
 }
 
-func TestCollectFixture(t *testing.T) {
+func TestListBranchesFixture(t *testing.T) {
 	f := newFixtureRepo(t)
 	ws, err := ListWorktrees(f.Repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bs, err := ListBranches(f.Repo, ws)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, b := range bs {
+		names = append(names, b.Name)
+		if !b.BranchOnly() || b.Branch != b.Name || b.Head == "" || b.Key() != "branch:"+b.Name || b.Main || b.Current {
+			t.Errorf("branch row = %+v", b)
+		}
+	}
+	if want := []string{"local-branch", "merged-branch", "pushed-branch"}; !reflect.DeepEqual(names, want) {
+		t.Errorf("branches = %v, want %v", names, want)
+	}
+	all, err := ListAll(f.Repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != len(ws)+len(bs) || !all[0].Main {
+		t.Errorf("ListAll returned %d rows, first %+v", len(all), all[0])
+	}
+}
+
+func TestCollectFixture(t *testing.T) {
+	f := newFixtureRepo(t)
+	ws, err := ListAll(f.Repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,16 +193,20 @@ func TestCollectFixture(t *testing.T) {
 		lost, ahead     int
 		behind          int
 		detached, orphn bool
+		inBase          bool
 	}
 	cases := map[string]want{
-		"clean":              {upstream: "origin/clean", behind: 1},
-		"dirty":              {upstream: "origin/dirty", dirty: []string{"README.md"}, behind: 1},
-		"untracked":          {upstream: "origin/untracked", untr: []string{"new.txt"}, behind: 1},
+		"clean":              {upstream: "origin/clean", behind: 1, inBase: true},
+		"dirty":              {upstream: "origin/dirty", dirty: []string{"README.md"}, behind: 1, inBase: true},
+		"untracked":          {upstream: "origin/untracked", untr: []string{"new.txt"}, behind: 1, inBase: true},
 		"unpushed":           {upstream: "origin/unpushed", lost: 1, ahead: 1, behind: 1},
 		"detached-reachable": {detached: true, behind: 1},
 		"detached-orphaned":  {detached: true, orphn: true, lost: 1, ahead: 1, behind: 1},
 		"upstream-gone":      {lost: 1, ahead: 1, behind: 1},
-		"claude/x":           {behind: 1},
+		"claude/x":           {behind: 1, inBase: true},
+		"merged-branch":      {behind: 1, inBase: true},
+		"pushed-branch":      {upstream: "origin/pushed-branch", ahead: 1, behind: 1},
+		"local-branch":       {lost: 1, ahead: 1, behind: 1},
 	}
 	for name, c := range cases {
 		w, ok := m[name]
@@ -196,13 +229,16 @@ func TestCollectFixture(t *testing.T) {
 		if w.Detached != c.detached || w.Orphaned != c.orphn {
 			t.Errorf("%s detached/orphaned = %v/%v, want %v/%v", name, w.Detached, w.Orphaned, c.detached, c.orphn)
 		}
+		if w.InBase != c.inBase {
+			t.Errorf("%s InBase = %v, want %v", name, w.InBase, c.inBase)
+		}
 		if w.LastActivity.IsZero() {
 			t.Errorf("%s LastActivity is zero", name)
 		}
 	}
 
 	main := m["repo"]
-	if main.Upstream != "origin/main" || main.Lost != 0 || main.Ahead != 0 || main.Behind != 0 {
+	if main.Upstream != "origin/main" || main.Lost != 0 || main.Ahead != 0 || main.Behind != 0 || main.InBase {
 		t.Errorf("main = %+v", main)
 	}
 	if main.Orphaned {
@@ -239,7 +275,7 @@ func TestCollectPreservesFields(t *testing.T) {
 
 func TestCollectLostWithPR(t *testing.T) {
 	f := newFixtureRepo(t)
-	ws, _ := ListWorktrees(f.Repo)
+	ws, _ := ListAll(f.Repo)
 	m := byName(ws)
 	var gone *Worktree
 	for i := range ws {
@@ -330,6 +366,41 @@ func TestLoadDetailFixture(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(d.Commits) != 2 || d.Commits[0].Subject != "local only" {
+		t.Errorf("Commits = %+v", d.Commits)
+	}
+}
+
+func TestLoadDetailBranchOnly(t *testing.T) {
+	f := newFixtureRepo(t)
+	all, _ := ListAll(f.Repo)
+	m := byName(all)
+	b := m["pushed-branch"]
+	if !b.BranchOnly() {
+		t.Fatalf("precondition: %+v", b)
+	}
+	tmp := filepath.Join(f.Root, ".worktrees", "tmp")
+	git(t, f.Root, "worktree", "add", "-q", "--detach", tmp, "pushed-branch")
+	writeFile(t, filepath.Join(tmp, "feature.txt"), "x\n")
+	git(t, tmp, "add", "feature.txt")
+	git(t, tmp, "commit", "-q", "-m", "file on branch")
+	git(t, f.Root, "update-ref", "refs/heads/pushed-branch", git(t, tmp, "rev-parse", "HEAD"))
+	git(t, f.Root, "worktree", "remove", tmp)
+	all, _ = ListAll(f.Repo)
+
+	b = byName(all)["pushed-branch"]
+
+	d, err := LoadDetail(f.Repo, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mb, _ := MergeBase(f.Repo, b)
+	if d.MergeBase != mb || mb == "" {
+		t.Errorf("MergeBase = %q, want %q", d.MergeBase, mb)
+	}
+	if !strings.Contains(d.Stat, "feature.txt") {
+		t.Errorf("Stat should show the branch's committed change:\n%s", d.Stat)
+	}
+	if len(d.Commits) == 0 || d.Commits[0].Subject != "file on branch" {
 		t.Errorf("Commits = %+v", d.Commits)
 	}
 }

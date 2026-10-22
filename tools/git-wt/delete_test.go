@@ -173,10 +173,12 @@ func TestStepLabels(t *testing.T) {
 		w    Worktree
 		want []string
 	}{
-		{"detached", Worktree{Detached: true}, []string{"worktree"}},
-		{"branch only", Worktree{Branch: "a"}, []string{"worktree", "branch"}},
-		{"branch and upstream", Worktree{Branch: "a", Upstream: "origin/a"}, []string{"worktree", "branch", "origin/a"}},
-		{"tracks another branch", Worktree{Branch: "a", Upstream: "origin/main"}, []string{"worktree", "branch"}},
+		{"detached", Worktree{Path: "/p", Detached: true}, []string{"worktree"}},
+		{"branch only", Worktree{Path: "/p", Branch: "a"}, []string{"worktree", "branch"}},
+		{"branch and upstream", Worktree{Path: "/p", Branch: "a", Upstream: "origin/a"}, []string{"worktree", "branch", "origin/a"}},
+		{"tracks another branch", Worktree{Path: "/p", Branch: "a", Upstream: "origin/main"}, []string{"worktree", "branch"}},
+		{"no worktree", Worktree{Branch: "a", Upstream: "origin/a"}, []string{"branch", "origin/a"}},
+		{"no worktree, no upstream", Worktree{Branch: "a"}, []string{"branch"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -191,7 +193,25 @@ func TestStepLabels(t *testing.T) {
 	}
 }
 
+func TestDeleteBranchWithoutWorktree(t *testing.T) {
+	f := delSetup(t)
+	git(t, f.repo.Root, "branch", "feat")
+	git(t, f.repo.Root, "push", "-u", "origin", "feat")
+	w := Worktree{Name: "feat", Branch: "feat", Upstream: "origin/feat"}
+	delRequireOK(t, delRunAll(f.repo, w))
+	if delHasRef(t, f.repo.Root, "refs/heads/feat") {
+		t.Error("local branch still exists")
+	}
+	if delHasRef(t, f.origin, "refs/heads/feat") {
+		t.Error("origin branch still exists")
+	}
+	if !delHasRef(t, f.repo.Root, "refs/heads/main") {
+		t.Error("main deleted")
+	}
+}
+
 func TestDeleteConcurrentItems(t *testing.T) {
+
 	f := delSetup(t)
 	var ws []Worktree
 	for i := range 12 {

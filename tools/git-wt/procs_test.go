@@ -12,7 +12,7 @@ import (
 )
 
 func TestParseProcs(t *testing.T) {
-	ws := []Worktree{{Path: "/r/app", Main: true}, {Path: "/r/app/.worktrees/a"}, {Path: "/r/app/.worktrees/b"}}
+	ws := []Worktree{{Path: "/r/app", Main: true}, {Path: "/r/app/.worktrees/a"}, {Path: "/r/app/.worktrees/b"}, {Branch: "no-worktree"}}
 	out := "p100\nR1\nczsh\nfcwd\nn/r/app/.worktrees/a\n" +
 		"p200\nR100\ncnode\nfcwd\nn/r/app/.worktrees/a/web/src\n" +
 		"p300\nR1\ncvim\nfcwd\nn/r/app\n" +
@@ -41,7 +41,7 @@ func TestCollectFindsProcessesInWorktree(t *testing.T) {
 	procSource = func() string { return "p4242\nczsh\nfcwd\nn" + filepath.Join(clean, "src") + "\n" }
 	t.Cleanup(func() { procSource = old })
 
-	ws, err := ListWorktrees(f.Repo)
+	ws, err := ListAll(f.Repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,17 +82,26 @@ func TestSquashMergedBranch(t *testing.T) {
 		{Path: unshipped.Path, Branch: "unshipped", Head: git(t, unshipped.Path, "rev-parse", "HEAD")},
 	}
 	Collect(f.repo, ws)
-	if !ws[0].SquashMerged || ws[0].Lost != 0 || !PreMark(ws[0], "main") {
-		t.Fatalf("shipped: squash=%v lost=%d premark=%v", ws[0].SquashMerged, ws[0].Lost, PreMark(ws[0], "main"))
+	if !ws[0].InBase || ws[0].Lost != 0 || !PreMark(ws[0], "main") {
+		t.Fatalf("shipped: squash=%v lost=%d premark=%v", ws[0].InBase, ws[0].Lost, PreMark(ws[0], "main"))
 	}
-	if ws[1].SquashMerged || ws[1].Lost != 2 {
-		t.Fatalf("unshipped: squash=%v lost=%d", ws[1].SquashMerged, ws[1].Lost)
+	if ws[1].InBase || ws[1].Lost != 2 {
+		t.Fatalf("unshipped: squash=%v lost=%d", ws[1].InBase, ws[1].Lost)
 	}
 
 	ws[0].PR = &PR{Number: 1, State: "OPEN", HeadOid: ws[0].Head}
 	Collect(f.repo, ws[:1])
-	if ws[0].SquashMerged {
+	if ws[0].InBase {
 		t.Fatal("a branch with a PR should defer to the PR")
+	}
+
+	bare := []Worktree{{Branch: "shipped", Head: ws[0].Head}, {Branch: "unshipped", Head: ws[1].Head}}
+	Collect(f.repo, bare)
+	if !bare[0].InBase || bare[0].Lost != 0 || !PreMark(bare[0], "main") {
+		t.Fatalf("shipped without worktree: inBase=%v lost=%d", bare[0].InBase, bare[0].Lost)
+	}
+	if bare[1].InBase || bare[1].Lost != 2 || PreMark(bare[1], "main") {
+		t.Fatalf("unshipped without worktree: inBase=%v lost=%d", bare[1].InBase, bare[1].Lost)
 	}
 }
 
