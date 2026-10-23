@@ -33,7 +33,7 @@ Afterwards, by hand:
 | `shell/.exports` | Non-secret environment variables |
 | `shell/.secrets` | Secret environment variables (gitignored) |
 | `shell/.gitconfig` | Git config, symlinked to `~/`. Includes per-path identity files, but its own `[user] email` currently overrides them. |
-| `bin/` | Scripts on `PATH`, e.g. `git prune-merged` |
+| `bin/` | Scripts on `PATH`, e.g. `git prune-merged`, `say` |
 | `journal.sh` | Journaling CLI, aliased as `jj` |
 
 ## Keeping the Brewfile current
@@ -55,3 +55,9 @@ journal.sh "TIL something neat" -e      Add a note and edit
 journal.sh -d 2020-01-01                View the entry from 1/1/20
 cat file.txt | journal.sh               Pipe file.txt into today's entry
 ```
+
+## Quiet `say` on calls
+
+`bin/say` shadows `/usr/bin/say` and stays silent while any app is capturing the microphone: Meet, Zoom, Teams, FaceTime, Slack huddles, muted calls, and dictation. Otherwise it runs `/usr/bin/say` with the same arguments. Rendering to a file (`-o`), `-n`, and `-v '?'` always pass through.
+
+It's a small Swift program in `tools/say`, compiled into `~/.cache/say/` on first use and again whenever the source changes. Without the Xcode Command Line Tools it falls back to `/usr/bin/say`. Needs macOS 14 or later.

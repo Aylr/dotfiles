@@ -42,7 +42,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
     echo "  7  GitHub CLI      (gh auth login)"
     echo "  8  Agent CLIs      (Claude Code, Hermes Agent)"
-    echo "  9  Tools           (build git-wt)"
+    echo "  9  Tools           (build git-wt, say)"
     exit 0
 fi
 
@@ -258,6 +258,12 @@ elif "$DOTFILES_DIR/bin/git-wt" -h &>/dev/null; then
     success "git-wt built (rebuilds itself when tools/git-wt changes)."
 else
     warn "git-wt build failed — retry: git wt -h"
+fi
+
+if "$DOTFILES_DIR/bin/say" -v '?' &>/dev/null && [[ -x "${XDG_CACHE_HOME:-$HOME/.cache}/say/say" ]]; then
+    success "say built (stays silent while the mic is in use; rebuilds itself when tools/say changes)."
+else
+    warn "say build failed — it falls back to /usr/bin/say. Retry: say -v '?'"
 fi
 
 # ── Done: Manual checklist ───────────────────────────────────────────────────

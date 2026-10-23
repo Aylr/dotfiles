@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Run say silently while any app is capturing the microphone, rebuilding tools/say whenever it changes.
+
+src="$(cd "$(dirname "${BASH_SOURCE[0]}")/../tools/say" && pwd)/main.swift"
+bin="${XDG_CACHE_HOME:-$HOME/.cache}/say/say"
+
+if [[ ! -x "$bin" || "$src" -nt "$bin" ]] && xcode-select -p &>/dev/null; then
+  mkdir -p "$(dirname "$bin")" && swiftc -O "$src" -o "$bin" 2>/dev/null
+fi
+[[ -x "$bin" ]] && exec "$bin" "$@"
+exec /usr/bin/say "$@"
