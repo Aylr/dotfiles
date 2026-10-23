@@ -11,8 +11,8 @@ Brewfile              # Homebrew packages, casks, and taps
 setup.sh              # Full bootstrap script (safe to re-run)
 journal.sh            # CLI journaling tool (aliased as jj)
 neovim_install.sh     # Neovim setup
-bin/                  # Scripts on PATH (git-prune-merged: delete merged branches + worktrees; cortex-up: sync cortex repos; git-wt: shim that rebuilds tools/git-wt on change)
-tools/                # Go sources for compiled bin/ tools (git-wt: worktree cleanup TUI)
+bin/                  # Scripts on PATH (git-prune-merged: delete merged branches + worktrees; cortex-up: sync cortex repos; git-wt: shim that rebuilds tools/git-wt on change; say: shim that rebuilds tools/say on change)
+tools/                # Sources for compiled bin/ tools (git-wt: worktree cleanup TUI; say: /usr/bin/say that stays silent while any app captures the mic)
 shell/
   .alias              # Shell aliases and functions
   .exports            # Non-secret environment variables
