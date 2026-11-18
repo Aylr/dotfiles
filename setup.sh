@@ -37,7 +37,7 @@ if [[ "${1:-}" == "--help" ]]; then
     echo "  1  Homebrew        (install + update)"
     echo "  2  Packages        (Brewfile)"
     echo "  3  Shell           (zsh default, oh-my-zsh, p10k fonts)"
-    echo "  4  Symlinks        (shell configs, gitconfig)"
+    echo "  4  Symlinks        (shell configs, gitconfig, karabiner)"
     echo "  5  fzf             (shell integration)"
     echo "  6  Neovim          (skipped if no nvim/ dir in dotfiles)"
     echo "  7  GitHub CLI      (gh auth login)"
@@ -180,6 +180,10 @@ symlink() {
 symlink "$DOTFILES_DIR/zsh/.zshrc"          "$HOME/.zshrc"
 symlink "$DOTFILES_DIR/zsh/.p10k.zsh"       "$HOME/.p10k.zsh"
 symlink "$DOTFILES_DIR/shell/.gitconfig"    "$HOME/.gitconfig"
+
+# Karabiner replaces karabiner.json on save, which breaks a file-level symlink
+mkdir -p "$HOME/.config"
+symlink "$DOTFILES_DIR/karabiner"           "$HOME/.config/karabiner"
 
 # Git identity configs (copy examples if not already set up)
 for variant in professional personal; do
