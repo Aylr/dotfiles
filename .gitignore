@@ -3,3 +3,5 @@ shell/.secrets
 .DS_Store
 /dotfiles/
 /tools/git-wt/git-wt
+/karabiner/automatic_backups/
+/karabiner/assets/

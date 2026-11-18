@@ -128,7 +128,7 @@ cask "freecad"
 # System utilities
 cask "flux-app"
 cask "appcleaner"
-# cask "karabiner-elements"
+cask "karabiner-elements"
 cask "caffeine"
 cask "swish"
 # cask "sound-control"

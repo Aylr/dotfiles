@@ -13,6 +13,7 @@ journal.sh            # CLI journaling tool (aliased as jj)
 neovim_install.sh     # Neovim setup
 bin/                  # Scripts on PATH (git-prune-merged: delete merged branches + worktrees; cortex-up: sync cortex repos; git-wt: shim that rebuilds tools/git-wt on change; say: shim that rebuilds tools/say on change)
 tools/                # Sources for compiled bin/ tools (git-wt: worktree cleanup TUI; say: /usr/bin/say that stays silent while any app captures the mic)
+karabiner/            # Karabiner-Elements config (dir symlinked to ~/.config/karabiner; right ⌘ tap opens Spotter panel)
 shell/
   .alias              # Shell aliases and functions
   .exports            # Non-secret environment variables
